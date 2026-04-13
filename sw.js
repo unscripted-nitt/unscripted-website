@@ -10,11 +10,8 @@ const STATIC_ASSETS = [
   '/icons/logo.png',
   '/manifest.json',
   '/pages/login.html',
-  '/pages/events.html',
-  '/pages/gallery.html',
   '/pages/members.html',
   '/pages/videos.html',
-  '/pages/contact.html',
 ];
 
 // Install — cache static assets
