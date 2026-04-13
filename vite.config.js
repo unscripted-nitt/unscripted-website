@@ -9,10 +9,10 @@ export default defineConfig({
         login: resolve(__dirname, 'pages/login.html'),
         dashboard: resolve(__dirname, 'pages/dashboard.html'),
         admin: resolve(__dirname, 'pages/admin.html'),
-        events: resolve(__dirname, 'pages/events.html'),
+        adminLogin: resolve(__dirname, 'pages/admin-login.html'),
+        adminDashboard: resolve(__dirname, 'pages/admin-dashboard.html'),
         members: resolve(__dirname, 'pages/members.html'),
-        gallery: resolve(__dirname, 'pages/gallery.html'),
-        contact: resolve(__dirname, 'pages/contact.html'),
+        videos: resolve(__dirname, 'pages/videos.html'),
       }
     }
   }
