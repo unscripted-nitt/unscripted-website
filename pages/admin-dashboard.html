@@ -255,7 +255,7 @@
       <div class="card" style="padding:0; border-radius:24px;">
         <table>
           <thead>
-            <tr><th style="padding-left:2rem;">Rank</th><th>Member</th><th>Points</th><th>Level</th><th style="padding-right:2rem; text-align:right;">Save</th></tr>
+            <tr><th style="padding-left:2rem;">Rank</th><th>Member</th><th>Points</th><th style="padding-right:2rem; text-align:right;">Level</th></tr>
           </thead>
           <tbody id="adminLeaderboardBody"></tbody>
         </table>
@@ -313,6 +313,11 @@
       <div style="display:flex; flex-direction:column; gap:0.6rem;">
         <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">Assigned Mentor</label>
         <select id="editMentor"></select>
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:0.6rem;">
+        <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">Overall Points</label>
+        <input type="number" id="editPoints" placeholder="0" />
       </div>
       
       <div style="display:flex; flex-direction:column; gap:0.6rem;">
@@ -496,9 +501,8 @@ async function renderLeaderboard() {
       <tr>
         <td style="padding-left:2rem;"><strong>#${rank++}</strong></td>
         <td><div style="font-weight:700;">${m.name}</div></td>
-        <td><input type="number" value="${m.points || 0}" id="pts-${d.id}" style="width:85px; font-weight:900; text-align:center; padding:0.5rem; background:#fff;"></td>
-        <td><span style="font-weight:700; color:#888;">${m.level || 'L1'}</span></td>
-        <td style="padding-right:2rem; text-align:right;"><button onclick="updateRawScore('${d.id}')" class="btn-primary" style="padding:6px 14px; background:#444; font-size:0.7rem; box-shadow:none;">Save</button></td>
+        <td><input type="number" value="${m.points || 0}" id="pts-${d.id}" onchange="updateRawScore('${d.id}')" style="width:85px; font-weight:900; text-align:center; padding:0.5rem; background:#fff; border: 1px solid var(--border); border-radius: 8px;"></td>
+        <td style="padding-right:2rem; text-align:right;"><span style="font-weight:700; color:#888;">${m.level || 'L1'}</span></td>
       </tr>
     `;
   });
@@ -522,6 +526,7 @@ window.openEditModal = (uid) => {
   document.getElementById('editPathway').value = u.pathway || 'L1P1';
   document.getElementById('editRole').value = u.role || 'user';
   document.getElementById('editMentor').value = u.mentor || '';
+  document.getElementById('editPoints').value = u.points || 0;
   document.getElementById('editModal').style.display = 'flex';
 };
 window.closeModal = () => { document.getElementById('editModal').style.display = 'none'; };
@@ -533,9 +538,10 @@ window.saveUserChanges = async () => {
   const pathway = document.getElementById('editPathway').value;
   const role = document.getElementById('editRole').value;
   const mentor = document.getElementById('editMentor').value;
+  const points = parseInt(document.getElementById('editPoints').value) || 0;
   try {
-    await updateDoc(doc(db, 'users', uid), { pathway, role, mentor });
-    await updateDoc(doc(db, 'leaderboard', uid), { level: (pathway || 'L1').substring(0,2) });
+    await updateDoc(doc(db, 'users', uid), { pathway, role, mentor, points });
+    await updateDoc(doc(db, 'leaderboard', uid), { points, level: (pathway || 'L1').substring(0,2) });
     alert('Updated!'); closeModal(); loadAllData();
   } catch(e) {}
 };
