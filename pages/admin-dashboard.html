@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Unscripted NITT</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="../icons/logo.png" type="image/png" />
+  
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root { 
+      --admin-bg: #f5f7f9; 
+      --admin-card: #ffffff; 
+      --admin-accent: #FF5722; 
+      --text-main: #111111;
+      --text-mid: #555555;
+      --border: #eaedf0;
+      --sidebar-w: 260px;
+    }
+    
+    * { box-sizing: border-box; }
+    body { background: var(--admin-bg); color: var(--text-main); font-family: 'DM Sans', sans-serif; margin:0; line-height:1.5; }
+
+    /* Layout */
+    .dash-top-nav { 
+      background: #fff; 
+      border-bottom: 1px solid var(--border); 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      padding:0 2.5rem; 
+      height:80px; 
+      position:fixed; 
+      top:0; width:100%; 
+      z-index:1001; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+    }
+    
+    .dash-body { display: flex; padding-top: 80px; min-height: 100vh; }
+    
+    .sidebar { 
+      width: var(--sidebar-w); 
+      background: #fff; 
+      border-right: 1px solid var(--border); 
+      position:fixed; 
+      height: calc(100vh - 80px); 
+      padding: 2.5rem 0; 
+      overflow-y:auto;
+    }
+    
+    .main-content { margin-left: var(--sidebar-w); flex: 1; padding: 3rem; }
+
+    /* Navigation */
+    .sidebar-label { padding:0 2.5rem 0.75rem; font-size:0.7rem; color:#999; letter-spacing:0.12em; text-transform:uppercase; font-weight:800; }
+    .dash-nav-item { 
+      display: flex; 
+      align-items: center; 
+      padding: 0.9rem 2.5rem; 
+      color: var(--text-mid); 
+      text-decoration: none; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      border-left: 4px solid transparent; 
+      gap: 0.9rem;
+      font-size: 0.95rem;
+    }
+    .dash-nav-item i { width: 20px; text-align: center; font-size: 1.1rem; }
+    .dash-nav-item:hover { color: var(--admin-accent); background: #fffaf9; }
+    .dash-nav-item.active { color: var(--admin-accent); background: #fff3ef; border-left-color: var(--admin-accent); }
+
+    /* Components */
+    .card { background: var(--admin-card); border: 1px solid var(--border); padding: 2rem; border-radius: 20px; margin-bottom: 2.5rem; box-shadow: 0 4px 25px rgba(0,0,0,0.04); }
+    .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 2rem; color: #000; }
+    
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 1.25rem 1rem; color: #888; text-transform: uppercase; font-size: 0.7rem; border-bottom: 1px solid var(--border); letter-spacing: 0.08em; font-weight: 800; }
+    td { padding: 1.25rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+    
+    .btn-primary { 
+      background: var(--admin-accent); 
+      border:none; 
+      color:white; 
+      padding:0.75rem 1.75rem; 
+      border-radius:12px; 
+      cursor:pointer; 
+      font-weight:700; 
+      transition:0.2s; 
+      font-family: inherit;
+      box-shadow: 0 4px 15px rgba(255,87,34,0.25); 
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,87,34,0.35); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    input, select, textarea { 
+      background: #fafafa; 
+      border: 1px solid #ddd; 
+      color: var(--text-main); 
+      padding: 0.85rem 1rem; 
+      border-radius: 12px; 
+      font-family: inherit; 
+      font-size: 0.95rem; 
+      transition: 0.2s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--admin-accent); background: #fff; box-shadow: 0 0 0 4px rgba(255,87,34,0.05); }
+
+    /* Modals */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); z-index: 2000; align-items: center; justify-content: center; }
+    .modal-content { background: #fff; padding: 3.5rem; border-radius: 30px; width: 95%; max-width: 550px; position: relative; box-shadow: 0 25px 70px rgba(0,0,0,0.2); }
+
+    /* Dashboard Widgets */
+    .grid-insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.8rem; margin-bottom: 3rem; }
+    .stat-box { background: #fff; border: 1px solid var(--border); padding: 2.2rem; border-radius: 24px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.02); transition: 0.3s; }
+    .stat-box:hover { transform: translateY(-3px); }
+    .stat-box .num { font-size: 3rem; font-weight: 800; color: #000; margin: 0.4rem 0; line-height: 1; }
+    .stat-box .label { color: #999; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .bulk-dropzone { border: 2px dashed #ddd; padding: 4rem 2rem; text-align: center; border-radius: 24px; cursor: pointer; transition: 0.2s; background: #fafafa; }
+    .bulk-dropzone:hover { border-color: var(--admin-accent); background: #fff; }
+    
+    .dash-section { display: none; animation: fadeIn 0.3s ease-out; }
+    .dash-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* UI Fixes */
+    #adminName { font-weight: 700; font-size: 0.95rem; color: #333; }
+    .badge { padding: 5px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-admin { background: #fff3ef; color: var(--admin-accent); }
+    .badge-user { background: #f0f2f5; color: #777; }
+  </style>
+</head>
+<body>
+
+<div class="dash-top-nav">
+  <div style="display:flex;align-items:center;gap:1.2rem;">
+    <img src="../icons/logo.png" alt="Unscripted" style="height:40px;" />
+    <span style="letter-spacing:0.15em; font-weight:900; font-size:1rem; border-left: 2px solid #eee; padding-left: 1.2rem;">ADMIN <span style="color:var(--admin-accent)">COMMAND</span></span>
+  </div>
+  <div style="display:flex; align-items:center; gap:2rem;">
+    <div style="text-align:right;">
+      <div id="adminName">Loading...</div>
+      <div style="font-size:0.7rem; color:#aaa; font-weight:700; text-transform:uppercase;">Verified Administrator</div>
+    </div>
+    <button onclick="doLogout()" style="background:#f0f2f5; color:#555; border:none; padding:0.7rem 1.5rem; border-radius:12px; cursor:pointer; font-weight:700; font-size:0.85rem; transition:0.2s;">Logout</button>
+  </div>
+</div>
+
+<div class="dash-body">
+  <aside class="sidebar">
+    <nav>
+      <div class="sidebar-label">Insights</div>
+      <a class="dash-nav-item active" onclick="showSection('insights')">
+        <i class="fa-solid fa-chart-line"></i> Club Statistics
+      </a>
+      
+      <div class="sidebar-label" style="margin-top:2.5rem;">Club Ops</div>
+      <a class="dash-nav-item" onclick="showSection('users')">
+        <i class="fa-solid fa-users-gear"></i> Member Control
+      </a>
+      <a class="dash-nav-item" onclick="showSection('attendance')">
+        <i class="fa-solid fa-calendar-check"></i> Bulk Attendance
+      </a>
+      <a class="dash-nav-item" onclick="showSection('leaderboard')">
+        <i class="fa-solid fa-award"></i> Leaderboard
+      </a>
+      
+      <div class="sidebar-label" style="margin-top:2.5rem;">Public Site</div>
+      <a class="dash-nav-item" onclick="showSection('events')">
+        <i class="fa-solid fa-bullhorn"></i> Event Manager
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    
+    <!-- SECTION: INSIGHTS -->
+    <div class="dash-section active" id="section-insights">
+      <h1 class="section-title">Club Insights</h1>
+      <div class="grid-insights">
+        <div class="stat-box"><div class="label">Total Members</div><div class="num" id="insightTotalUsers">0</div></div>
+        <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">0</div></div>
+        <div class="stat-box"><div class="label">Attendance rate</div><div class="num" id="insightAvgAtt">0%</div></div>
+      </div>
+      <div style="display:grid; grid-template-columns: 3fr 2fr; gap:2rem;">
+        <div class="card">
+          <h3 style="margin-top:0;">Level Distribution</h3>
+          <canvas id="growthChart" height="280"></canvas>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Engagement Status</h3>
+          <canvas id="statusChart" height="280"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: USERS -->
+    <div class="dash-section" id="section-users">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+        <h1 class="section-title" style="margin:0;">Member Control</h1>
+        <input type="text" id="userSearch" placeholder="Search by name, email or roll..." style="width:320px;" onkeyup="filterUsers()">
+      </div>
+      <div class="card" style="padding:0; overflow-x:auto; border-radius:24px;">
+        <table>
+          <thead>
+            <tr>
+              <th style="padding-left:2rem;">Member Details</th><th>Shorthand</th><th>Mentor</th><th>Engagement</th><th style="padding-right:2rem; text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION: ATTENDANCE -->
+    <div class="dash-section" id="section-attendance">
+      <h1 class="section-title">Bulk Attendance</h1>
+      <div class="card" style="max-width:900px;">
+        <p style="color:var(--text-mid); margin-bottom:2.5rem; font-size:1.1rem;">Upload a CSV or Excel sheet with attendee names. All others will be marked absent automatically.</p>
+        
+        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:2.5rem; align-items:start;">
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Meeting Date</label>
+            <input type="date" id="attDate" style="width:100%; border-radius:15px; font-weight:700;" />
+          </div>
+          <div>
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase; margin-bottom:0.75rem; display:block;">Attendee List</label>
+            <input type="file" id="attFile" accept=".csv, .xlsx, .xls" style="display:none;" onchange="handleAttFile(this)" />
+            <div class="bulk-dropzone" onclick="document.getElementById('attFile').click()" id="dropzoneText">
+               <i class="fa-solid fa-file-excel" style="font-size:2.5rem; color:#ddd; margin-bottom:1rem; display:block;"></i>
+               <strong>Browse Excel/CSV</strong>
+               <p style="font-size:0.8rem; color:#aaa; margin-top:0.4rem;">Matches Name, Roll or Email</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="attPreview" style="display:none; margin-top:3rem; border-top:1px solid var(--border); padding-top:2.5rem;">
+          <h3 style="margin-top:0;">Found <span id="attCount" style="color:var(--admin-accent)">0</span> members in file</h3>
+          <div style="background:#f9f9f9; padding:1.5rem; border-radius:18px; max-height:220px; overflow-y:auto; margin-bottom:2rem; display:flex; flex-wrap:wrap; gap:8px;" id="attPreviewList"></div>
+          <button class="btn-primary" onclick="submitBulkAttendance()" style="width:100%; padding:1.2rem;">Commit Attendance for Entire Batch →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: LEADERBOARD -->
+    <div class="dash-section" id="section-leaderboard">
+      <h1 class="section-title">Leaderboard Operations</h1>
+      <div class="card" style="padding:0; border-radius:24px;">
+        <table>
+          <thead>
+            <tr><th style="padding-left:2rem;">Rank</th><th>Member</th><th>Points</th><th>Level</th><th style="padding-right:2rem; text-align:right;">Save</th></tr>
+          </thead>
+          <tbody id="adminLeaderboardBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION: EVENTS MANAGER -->
+    <div class="dash-section" id="section-events">
+      <h1 class="section-title">Manage Next Event</h1>
+      <div class="card" style="max-width:700px;">
+        <p style="color:var(--text-mid); margin-bottom:2rem;">This updates the "Upcoming Events" section on the public website.</p>
+        
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Event Title</label>
+            <input type="text" id="evTitle" placeholder="e.g. Speak-Up Workshop" />
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Date & Time</label>
+              <input type="text" id="evDate" placeholder="e.g. 25th Oct, 5:00 PM" />
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Registration Link</label>
+              <input type="url" id="evLink" placeholder="https://forms.gle/..." />
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Short Description</label>
+            <textarea id="evDesc" rows="3" placeholder="Explain what the event is about..."></textarea>
+          </div>
+          <button class="btn-primary" id="saveEventBtn" onclick="saveEvent()" style="padding:1.1rem;">Update Website Event →</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL: EDIT USER -->
+<div class="modal" id="editModal">
+  <div class="modal-content">
+    <span style="position:absolute; top:2rem; right:2rem; cursor:pointer; color:#ccc; font-size:1.5rem;" onclick="closeModal()">✕</span>
+    <h2 style="font-family:'Playfair Display', serif; margin-top:0;">Update Profile</h2>
+    <p id="editUserName" style="color:var(--admin-accent); font-weight:800; font-size:1.2rem; margin-top:0.5rem;"></p>
+    
+    <input type="hidden" id="editUid" />
+    
+    <div style="display:flex; flex-direction:column; gap:1.8rem; margin-top:2.5rem;">
+      <div style="display:flex; flex-direction:column; gap:0.6rem;">
+        <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">Current Pathway Shorthand</label>
+        <input type="text" id="editPathway" placeholder="e.g. L2P4" />
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:0.6rem;">
+        <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">Assigned Mentor</label>
+        <select id="editMentor"></select>
+      </div>
+      
+      <div style="display:flex; flex-direction:column; gap:0.6rem;">
+        <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">System Role</label>
+        <select id="editRole">
+          <option value="user">Club Member</option>
+          <option value="admin">Administrator</option>
+        </select>
+      </div>
+      
+      <button class="btn-primary" style="padding:1.1rem; border-radius:18px; margin-top:1rem;" onclick="saveUserChanges()">Apply Profile Updates</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from '../js/firebase-config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, getDocs, collection, query, orderBy, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let allUsers = [];
+let bulkAttendees = [];
+let charts = {};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'admin-login.html'; return; }
+  const snap = await getDoc(doc(db, 'users', user.uid));
+  if (!snap.exists() || snap.data().role !== 'admin') {
+    await signOut(auth); window.location.href = 'admin-login.html'; return;
+  }
+  document.getElementById('adminName').textContent = snap.data().name;
+  loadAllData();
+  loadCurrentEvent();
+});
+
+window.doLogout = async () => { await signOut(auth); window.location.href = 'admin-login.html'; };
+
+async function loadAllData() {
+  const snap = await getDocs(query(collection(db, 'users'), orderBy('name', 'asc')));
+  allUsers = [];
+  snap.forEach(d => { allUsers.push({ id: d.id, ...d.data() }); });
+  renderUserTable();
+  renderLeaderboard();
+  updateInsights();
+  populateMentorDropdown();
+}
+
+// Stats & Insights
+function updateInsights() {
+  document.getElementById('insightTotalUsers').textContent = allUsers.length;
+  document.getElementById('insightSpeeches').textContent = allUsers.reduce((acc, u) => acc + (u.speeches?.length || 0), 0);
+  const totalPresent = allUsers.reduce((acc, u) => acc + (u.attendance?.filter(a=>a.present).length || 0), 0);
+  const totalMeets = allUsers.reduce((acc, u) => acc + (u.attendance?.length || 0), 0);
+  document.getElementById('insightAvgAtt').textContent = totalMeets ? Math.round(totalPresent/totalMeets*100) + '%' : '0%';
+  renderCharts();
+}
+
+function renderCharts() {
+  if(charts.growth) charts.growth.destroy();
+  if(charts.status) charts.status.destroy();
+  const pathData = { L1:0, L2:0, L3:0 };
+  allUsers.forEach(u => {
+    const lvl = (u.pathway || 'L1').substring(0,2);
+    if(pathData[lvl] !== undefined) pathData[lvl]++;
+  });
+  charts.growth = new Chart(document.getElementById('growthChart'), {
+    type:'bar',
+    data:{
+      labels:['Level 1','Level 2','Level 3'],
+      datasets:[{label:'Members', data:[pathData.L1, pathData.L2, pathData.L3], backgroundColor:['#FF5722','#FF9800','#FFC107'], borderRadius:8}]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{display:false}, ticks:{stepSize:1}}, x:{grid:{display:false}}}}
+  });
+  charts.status = new Chart(document.getElementById('statusChart'), {
+    type:'doughnut',
+    data:{
+      labels:['Foundational','Intermediate','Advanced'],
+      datasets:[{data:[pathData.L1, pathData.L2, pathData.L3], backgroundColor:['#f0f2f5','#FF9800','#FF5722'], borderWidth:0}]
+    },
+    options:{ cutout:'80%', plugins:{legend:{position:'bottom', labels:{usePointStyle:true, padding:20}}}}
+  });
+}
+
+// User Table
+function renderUserTable() {
+  const tbody = document.getElementById('userTableBody');
+  tbody.innerHTML = allUsers.map(u => {
+    const att = u.attendance || [];
+    const pct = att.length ? Math.round(att.filter(a=>a.present).length/att.length*100) : 0;
+    return `
+      <tr>
+        <td style="padding-left:2rem;">
+          <div style="font-weight:700; font-size:1rem;">${u.name}</div>
+          <div style="font-size:0.7rem; color:#999; font-weight:700;">${u.email.toUpperCase()}</div>
+          ${u.role==='admin'?'<span class="badge badge-admin" style="margin-top:4px; display:inline-block;">Administrator</span>':''}
+        </td>
+        <td><span style="font-weight:900; color:var(--admin-accent); background:#fff3ef; padding:4px 10px; border-radius:6px;">${u.pathway || 'L1P1'}</span></td>
+        <td><span style="color:#555; font-weight:600;">${u.mentor ? allUsers.find(au=>au.id===u.mentor)?.name || 'Missing' : '<em>(unassigned)</em>'}</span></td>
+        <td>
+          <div style="font-weight:800;">${pct}%</div>
+          <div style="font-size:0.7rem; color:#aaa;">${att.length} sessions logged</div>
+        </td>
+        <td style="padding-right:2rem; text-align:right;"><button class="btn-primary" style="padding:7px 18px; font-size:0.8rem;" onclick="openEditModal('${u.id}')">Edit</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Attendance Logic
+window.handleAttFile = (input) => {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, {type: 'array'});
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
+    bulkAttendees = rows.flat().map(v => String(v).toLowerCase().trim()).filter(v => v.length > 2);
+    document.getElementById('attCount').textContent = bulkAttendees.length;
+    document.getElementById('attPreviewList').innerHTML = bulkAttendees.map(a => `<span style="background:#fff; border:1px solid #ddd; padding:6px 14px; border-radius:100px; font-size:0.75rem; font-weight:700; color:#555;">${a}</span>`).join('');
+    document.getElementById('attPreview').style.display = 'block';
+    document.getElementById('dropzoneText').innerHTML = `<i class="fa-solid fa-circle-check" style="font-size:2rem; color:#25D366; margin-bottom:0.5rem; display:block;"></i> <strong>${file.name} loaded</strong>`;
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+window.submitBulkAttendance = async () => {
+  const date = document.getElementById('attDate').value;
+  if(!date) { alert('Select meeting date.'); return; }
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Processing Batch...';
+  let pCount = 0;
+  for (const user of allUsers) {
+    const isPresent = bulkAttendees.some(ba => 
+      user.name.toLowerCase().includes(ba) || user.email.toLowerCase().includes(ba) || (user.roll && user.roll.toLowerCase().includes(ba))
+    );
+    if(isPresent) pCount++;
+    try { await updateDoc(doc(db, 'users', user.id), { attendance: arrayUnion({ date, present: isPresent }) }); } catch(e) {}
+  }
+  alert(`Finished! ${pCount} Present, ${allUsers.length - pCount} Absent.`);
+  btn.disabled = false; btn.textContent = 'Commit Attendance for Entire Batch →';
+  document.getElementById('attPreview').style.display = 'none';
+  loadAllData();
+};
+
+// Event Manager Logic
+async function loadCurrentEvent() {
+  const snap = await getDoc(doc(db, 'config', 'next_event'));
+  if(snap.exists()) {
+    const d = snap.data();
+    document.getElementById('evTitle').value = d.title || '';
+    document.getElementById('evDate').value = d.date || '';
+    document.getElementById('evLink').value = d.link || '';
+    document.getElementById('evDesc').value = d.description || '';
+  }
+}
+
+window.saveEvent = async () => {
+  const title = document.getElementById('evTitle').value;
+  const date = document.getElementById('evDate').value;
+  const link = document.getElementById('evLink').value;
+  const description = document.getElementById('evDesc').value;
+  const btn = document.getElementById('saveEventBtn');
+  btn.textContent = 'Saving...'; btn.disabled = true;
+  try {
+    await setDoc(doc(db, 'config', 'next_event'), { title, date, link, description, updated: serverTimestamp() });
+    alert('Public event updated successfully!');
+  } catch(e) { alert('Error: ' + e.message); } finally { btn.textContent = 'Update Website Event →'; btn.disabled = false; }
+};
+
+// Leaderboard
+async function renderLeaderboard() {
+  const tbody = document.getElementById('adminLeaderboardBody');
+  const snap = await getDocs(query(collection(db, 'leaderboard'), orderBy('points', 'desc')));
+  tbody.innerHTML = '';
+  let rank = 1;
+  snap.forEach(d => {
+    const m = d.data();
+    tbody.innerHTML += `
+      <tr>
+        <td style="padding-left:2rem;"><strong>#${rank++}</strong></td>
+        <td><div style="font-weight:700;">${m.name}</div></td>
+        <td><input type="number" value="${m.points || 0}" id="pts-${d.id}" style="width:85px; font-weight:900; text-align:center; padding:0.5rem; background:#fff;"></td>
+        <td><span style="font-weight:700; color:#888;">${m.level || 'L1'}</span></td>
+        <td style="padding-right:2rem; text-align:right;"><button onclick="updateRawScore('${d.id}')" class="btn-primary" style="padding:6px 14px; background:#444; font-size:0.7rem; box-shadow:none;">Save</button></td>
+      </tr>
+    `;
+  });
+}
+
+window.updateRawScore = async (uid) => {
+  const pts = parseInt(document.getElementById('pts-'+uid).value);
+  try {
+    await updateDoc(doc(db, 'leaderboard', uid), { points: pts });
+    await updateDoc(doc(db, 'users', uid), { points: pts });
+    alert('Score updated');
+  } catch(e) {}
+};
+
+// Modals & Switching
+window.openEditModal = (uid) => {
+  const u = allUsers.find(x => x.id === uid);
+  if (!u) return;
+  document.getElementById('editUid').value = uid;
+  document.getElementById('editUserName').textContent = u.name;
+  document.getElementById('editPathway').value = u.pathway || 'L1P1';
+  document.getElementById('editRole').value = u.role || 'user';
+  document.getElementById('editMentor').value = u.mentor || '';
+  document.getElementById('editModal').style.display = 'flex';
+};
+window.closeModal = () => { document.getElementById('editModal').style.display = 'none'; };
+function populateMentorDropdown() {
+  document.getElementById('editMentor').innerHTML = '<option value="">(None)</option>' + allUsers.map(u => `<option value="${u.id}">${u.name}</option>`).join('');
+}
+window.saveUserChanges = async () => {
+  const uid = document.getElementById('editUid').value;
+  const pathway = document.getElementById('editPathway').value;
+  const role = document.getElementById('editRole').value;
+  const mentor = document.getElementById('editMentor').value;
+  try {
+    await updateDoc(doc(db, 'users', uid), { pathway, role, mentor });
+    await updateDoc(doc(db, 'leaderboard', uid), { level: (pathway || 'L1').substring(0,2) });
+    alert('Updated!'); closeModal(); loadAllData();
+  } catch(e) {}
+};
+
+window.showSection = (id) => {
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.querySelectorAll('.dash-nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[onclick="showSection('${id}')"]`).classList.add('active');
+};
+
+window.filterUsers = () => {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  document.querySelectorAll('#userTableBody tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+};
+</script>
+</body>
+</html>

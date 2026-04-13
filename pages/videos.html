@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Speech Videos — Unscripted NITT</title>
+  <meta name="description" content="Watch speech videos from Unscripted members at NIT Trichy — talks, debates, and performances." />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../icons/logo.png" type="image/png" />
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a class="nav-logo" href="../index.html"><img src="../icons/logo.png" alt="Unscripted NITT" /></a>
+  <div class="nav-links" id="navLinks">
+    <a href="../index.html#about">About</a>
+    <a href="../index.html#events">Events</a>
+    <a href="../index.html#gallery">Gallery</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="members.html">Members</a>
+    <a href="videos.html" style="color:var(--orange);">Speeches</a>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-login" onclick="window.location.href='login.html'">Member Login</button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-header">
+  <span class="section-tag" style="position:relative;z-index:1;">Speech Videos</span>
+  <h1>Watch Our Speakers</h1>
+  <p>Recorded speeches, debates, and talks from Unscripted members</p>
+</div>
+
+<div class="page-content">
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterVideos('all',this)">All</button>
+    <button class="filter-btn" onclick="filterVideos('speech',this)">🎤 Speeches</button>
+    <button class="filter-btn" onclick="filterVideos('debate',this)">⚖️ Debates</button>
+    <button class="filter-btn" onclick="filterVideos('humor',this)">😂 Humorous</button>
+  </div>
+  <div class="videos-grid" id="videosGrid">
+    <div class="event-skeleton" style="height:260px;"></div>
+    <div class="event-skeleton" style="height:260px;"></div>
+    <div class="event-skeleton" style="height:260px;"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" /></div>
+        <p class="footer-tagline">Official public speaking club of NIT Trichy.</p>
+      </div>
+      <div class="footer-nav"><h4>Pages</h4><ul>
+        <li><a href="../index.html#events">Events</a></li>
+        <li><a href="../index.html#gallery">Gallery</a></li>
+        <li><a href="../index.html#contact">Contact</a></li>
+        <li><a href="members.html">Members</a></li>
+        <li><a href="videos.html">Speeches</a></li>
+      </ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 Unscripted, NIT Trichy.</p>
+      <p class="footer-love">Made with <span>♥</span> in Trichy</p>
+    </div>
+  </div>
+</footer>
+
+<script type="module">
+import { db } from '../js/firebase-config.js';
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let allVideos = [];
+
+function getYouTubeId(url) {
+  if (!url) return null;
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+async function loadVideos() {
+  const grid = document.getElementById('videosGrid');
+  try {
+    const q = query(collection(db,'videos'), orderBy('date','desc'));
+    const snap = await getDocs(q);
+    allVideos = [];
+    snap.forEach(doc => allVideos.push({id:doc.id,...doc.data()}));
+    if (allVideos.length === 0) {
+      grid.innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">No videos uploaded yet. Check back soon!</p>';
+      return;
+    }
+    renderVideos(allVideos);
+  } catch(e) {
+    grid.innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">Could not load videos.</p>';
+  }
+}
+
+function renderVideos(videos) {
+  const grid = document.getElementById('videosGrid');
+  grid.innerHTML = videos.map(v => {
+    const ytId = getYouTubeId(v.url);
+    const embedUrl = ytId ? `https://www.youtube.com/embed/${ytId}` : '';
+    const dateStr = v.date?.toDate ? v.date.toDate().toLocaleDateString('en-IN',{month:'long',year:'numeric'}) : (v.date||'');
+    return `<div class="video-card">
+      <div class="video-thumb">
+        ${ytId ? `<iframe src="${embedUrl}" title="${v.title||''}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe>`
+          : `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,0.4);font-size:3rem;">🎤</div>`}
+      </div>
+      <div class="video-info">
+        <div class="video-title">${v.title||'Speech'}</div>
+        <div class="video-meta">${v.speaker ? `by ${v.speaker} · ` : ''}${dateStr}</div>
+        ${v.category ? `<span class="event-badge badge-upcoming" style="margin-top:0.75rem;">${v.category}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.filterVideos = function(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if (cat === 'all') renderVideos(allVideos);
+  else renderVideos(allVideos.filter(v=>v.category===cat));
+};
+
+loadVideos();
+</script>
+<script src="../js/nav.js"></script>
+</body>
+</html>

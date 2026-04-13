@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Seed Data — Unscripted NITT</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #FFFAF7; text-align: center; }
+    .btn { background: #FF5722; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.2rem; }
+    .status { margin-top: 1rem; color: #666; }
+  </style>
+</head>
+<body>
+  <h1>Seed Initial Data</h1>
+  <p>This script will add sample events, photos, and videos to your Firestore database so the website isn't empty.</p>
+  <button class="btn" id="seedBtn" onclick="seedData()">Seed Initial Data →</button>
+  <div class="status" id="status">Ready...</div>
+
+  <script type="module">
+    import { db } from './js/firebase-config.js';
+    import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    window.seedData = async function() {
+      const btn = document.getElementById('seedBtn');
+      const status = document.getElementById('status');
+      btn.disabled = true; status.textContent = 'Adding data...';
+
+      try {
+        // 1. ADD EVENTS
+        const events = [
+          { title: "Monthly Meet #15", date: new Date("2026-04-15"), location: "ESB 104, NIT Trichy", type: "upcoming", description: "Join us for our monthly speaking meet with a focus on 'Effective Evaluation'." },
+          { title: "Workshop: Building Confidence", date: new Date("2026-03-20"), location: "Online (G-Meet)", type: "past", description: "An interactive workshop on overcoming stage fear and mastering eye contact." },
+          { title: "Icebreaker Session", date: new Date("2026-02-10"), location: "Gallery Hall", type: "past", description: "Welcome session for new members with quick-fire speaking rounds." }
+        ];
+        for(let e of events) await addDoc(collection(db, 'events'), { ...e, created: serverTimestamp() });
+
+        // 2. ADD GALLERY IMAGES
+        const photos = [
+          { url: "https://images.unsplash.com/photo-1475721027785-f74eccf46c3f?auto=format&fit=crop&q=80&w=800", caption: "Monthly Meet #12 — Group Photo" },
+          { url: "https://images.unsplash.com/photo-1540575861501-7ad060e39fe1?auto=format&fit=crop&q=80&w=800", caption: "Keynote speaking session" },
+          { url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=800", caption: "Confidence workshop moments" }
+        ];
+        for(let p of photos) await addDoc(collection(db, 'gallery'), { ...p, date: serverTimestamp() });
+
+        // 3. ADD VIDEOS
+        const videos = [
+          { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "The Art of Persuasion", speaker: "Aditi S.", category: "speech", date: serverTimestamp() },
+          { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", title: "Humorous Speech Winner", speaker: "Rohan V.", category: "humor", date: serverTimestamp() }
+        ];
+        for(let v of videos) await addDoc(collection(db, 'videos'), { ...v, date: serverTimestamp() });
+
+        // 4. ADD TO LEADERBOARD
+        const leaderboard = [
+          { name: "Aditi Sharma", points: 85, speeches: 12, level: "L3K" },
+          { name: "Rohan V.", points: 72, speeches: 9, level: "L2" },
+          { name: "Priya Nair", points: 65, speeches: 8, level: "L2" }
+        ];
+        for(let l of leaderboard) await addDoc(collection(db, 'leaderboard'), l);
+
+        status.textContent = '✅ Success! Initial data added. You can now close this tab.';
+        btn.textContent = 'All Set!';
+      } catch (e) {
+        status.textContent = '❌ Error: ' + e.message;
+        btn.disabled = false;
+      }
+    };
+  </script>
+</body>
+</html>

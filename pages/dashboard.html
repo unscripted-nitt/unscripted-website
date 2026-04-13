@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Unscripted NITT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../icons/logo.png" type="image/png" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="dash-top-nav">
+  <a href="../index.html" class="nav-logo" style="gap:0.5rem;">
+    <img src="../icons/logo.png" alt="Unscripted" style="height:36px;width:auto;" />
+  </a>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <span id="topNavName" style="color:rgba(255,255,255,0.6);font-size:0.88rem;"></span>
+    <div id="topNavAvatar" class="dash-avatar"></div>
+    <button onclick="doLogout()" style="background:rgba(255,255,255,0.1);color:white;border:none;padding:0.45rem 1rem;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.85rem;font-family:var(--font-body);">Log Out</button>
+  </div>
+</div>
+
+<div class="dash-body">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav>
+      <div class="sidebar-label">My Journey</div>
+      <a class="dash-nav-item" onclick="showSection('progress')"><span class="dash-nav-icon">📊</span> My Progress</a>
+      <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon">📈</span> Analysis</a>
+      <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon">🎖️</span> Achievements</a>
+      <div class="sidebar-label">Club</div>
+      <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon">🏆</span> Leaderboard</a>
+      <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon">🤝</span> Mentor / Mentee</a>
+      <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon">📅</span> Attendance</a>
+      <div class="sidebar-label">Public</div>
+      <a class="dash-nav-item" href="../index.html#events"><span class="dash-nav-icon">🗓️</span> Events</a>
+      <a class="dash-nav-item" href="../index.html#gallery"><span class="dash-nav-icon">📸</span> Gallery</a>
+      <a class="dash-nav-item" href="../index.html#contact"><span class="dash-nav-icon">✉️</span> Contact</a>
+      <a class="dash-nav-item" href="members.html"><span class="dash-nav-icon">👥</span> Members</a>
+      <a class="dash-nav-item" href="videos.html"><span class="dash-nav-icon">🎤</span> Speeches</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- PROGRESS -->
+    <div class="dash-section active" id="section-progress">
+      <h2 class="section-title">My Progress</h2>
+      <p class="section-sub">Your speech pathway journey at a glance</p>
+      <div class="stats-cards" id="progressStats">
+        <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Completed</div></div>
+        <div class="stat-card"><div class="big-num" id="statLevel">—</div><div class="stat-name">Last Project</div></div>
+        <div class="stat-card"><div class="big-num" id="statAttPct">—</div><div class="stat-name">Attendance %</div></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
+          <h3 style="margin:0;" id="pathwayTitle">Pathway Progress</h3>
+          <span id="pathwayBadge" style="background:var(--orange);color:white;padding:0.3rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:700;">Loading...</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="pathwayBar" style="width:0%"></div>
+        </div>
+        <div class="progress-labels">
+          <span id="progressDone">0 speeches done</span>
+          <span id="progressTotal">of ? total</span>
+        </div>
+        <div class="pathway-steps" id="pathwaySteps" style="margin-top:1.5rem;"></div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS -->
+    <div class="dash-section" id="section-analysis">
+      <h2 class="section-title">Speech Analysis</h2>
+      <p class="section-sub">Visual breakdown of your speaking skills and growth</p>
+      <div class="card">
+        <h3>Skill Radar</h3>
+        <p style="color:var(--mid);font-size:0.88rem;margin-bottom:1rem;">Based on mentor evaluations across speech dimensions</p>
+        <canvas id="radarChart" width="400" height="400" style="max-width:400px;margin:0 auto;display:block;"></canvas>
+      </div>
+      <div class="card">
+        <h3>Speeches Over Time</h3>
+        <canvas id="progressChart" width="600" height="250" style="max-width:100%;"></canvas>
+      </div>
+      <div class="card">
+        <h3>Skill Breakdown</h3>
+        <div id="skillBars"></div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS SECTION... (already existing) -->
+
+    <!-- ACHIEVEMENTS -->
+    <div class="dash-section" id="section-achievements">
+      <h2 class="section-title">Achievements</h2>
+      <p class="section-sub">Badges you've earned on your Unscripted journey</p>
+      <div class="card">
+        <div class="badges-grid" id="badgesGrid"><p style="color:var(--mid);">Loading achievements...</p></div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="dash-section" id="section-leaderboard">
+      <h2 class="section-title">Leaderboard</h2>
+      <p class="section-sub">Top speakers this semester</p>
+      <div class="card">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Rank</th><th>Member</th><th>Pathway</th><th>Speeches</th><th>Points</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mid);">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MENTORSHIP -->
+    <div class="dash-section" id="section-mentorship">
+      <h2 class="section-title">Mentor &amp; Mentee</h2>
+      <p class="section-sub">Your personal support network</p>
+      <div class="card">
+        <h3>Your Mentor</h3>
+        <div id="mentorInfo"><p style="color:var(--mid);">Loading...</p></div>
+      </div>
+      <div class="card" id="menteesCard" style="display:none;">
+        <h3>Your Mentees</h3>
+        <div class="mentee-list" id="menteesList"></div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="dash-section" id="section-attendance">
+      <h2 class="section-title">Attendance</h2>
+      <p class="section-sub">Your meet attendance record</p>
+      <div class="card">
+        <div class="att-summary">
+          <div class="att-stat"><div class="num" id="attPresent">—</div><div class="lbl">Present</div></div>
+          <div class="att-stat"><div class="num" id="attTotal">—</div><div class="lbl">Total Meets</div></div>
+          <div class="att-stat"><div class="num" id="attPct">—</div><div class="lbl">Attendance %</div></div>
+        </div>
+        <div class="att-calendar" id="attCalendar"><p style="color:var(--mid);">Loading...</p></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<div class="mobile-dash-nav" style="display:flex;" id="mobileNav">
+  <div class="mob-nav-item active" onclick="showSection('progress')"><span class="mob-nav-icon">📊</span>Progress</div>
+  <div class="mob-nav-item" onclick="showSection('leaderboard')"><span class="mob-nav-icon">🏆</span>Board</div>
+  <div class="mob-nav-item" onclick="showSection('attendance')"><span class="mob-nav-icon">📅</span>Attend</div>
+  <div class="mob-nav-item" onclick="showSection('mentorship')"><span class="mob-nav-icon">🤝</span>Mentor</div>
+</div>
+
+<script type="module">
+import { auth, db } from '../js/firebase-config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let currentUser = null;
+let userData = null;
+let chartsRendered = false;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'login.html'; return; }
+  currentUser = user;
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) { 
+      await signOut(auth); // Prevent infinite loop
+      window.location.href = 'login.html'; 
+      return; 
+    }
+    userData = snap.data();
+    renderDashboard(userData);
+  } catch(e) {
+    console.error('Core data load failed:', e);
+  }
+});
+
+window.doLogout = async () => { 
+  await signOut(auth); 
+  window.location.href = 'login.html'; // Go back to login, not root
+};
+
+function renderDashboard(data) {
+  const initials = (data.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('topNavName').textContent = data.name || '';
+  document.getElementById('topNavAvatar').textContent = initials;
+
+  // Calculations moved to renderPathway for accuracy across all levels
+  const meets = (data.attendance||[]);
+  const present = meets.filter(m=>m.present).length;
+  const pct = meets.length ? Math.round(present/meets.length*100) : 0;
+
+  document.getElementById('statAttPct').textContent = pct+'%';
+
+  renderPathway(data);
+  renderAttendance(data.attendance||[]);
+  renderAchievements(data);
+  loadLeaderboard();
+  loadMentorship(data);
+}
+
+let PATHWAY_DATA = {};
+
+async function fetchPathways() {
+  try {
+    const snap = await getDocs(collection(db, 'pathways'));
+    if (snap.empty) {
+      console.warn("Pathways collection is empty!");
+      return;
+    }
+    snap.forEach(d => {
+      PATHWAY_DATA[d.id] = d.data();
+    });
+  } catch(e) {
+    console.error('Failed to fetch pathway data from Firestore:', e);
+    document.getElementById('pathwayBadge').textContent = 'Error Loading Data';
+    document.getElementById('pathwayBadge').style.background = '#f44336';
+  }
+}
+
+async function setL3Choice(choice) {
+  const newPathway = `L3${choice}P1`;
+  try {
+    const userRef = doc(db, 'users', currentUser.uid);
+    await setDoc(userRef, { pathway: newPathway }, { merge: true });
+    userData.pathway = newPathway; // Update local data
+    renderPathway(userData);
+  } catch(e) {
+    alert('Failed to save choice: ' + e.message);
+  }
+}
+
+async function renderPathway(data) {
+  if (Object.keys(PATHWAY_DATA).length === 0) await fetchPathways();
+
+  const pathwayStr = data.pathway || 'L1P1';
+  let currentLevelNum = 1;
+  let currentProjectNum = 1;
+  let currentSubType = ''; 
+  
+  const match = pathwayStr.match(/L(\d+)([K|H])?P(\d+)/i);
+  if (match) {
+    currentLevelNum = parseInt(match[1]);
+    currentSubType = (match[2] || '').toUpperCase();
+    currentProjectNum = parseInt(match[3]);
+  }
+
+  const container = document.getElementById('pathwaySteps');
+  container.innerHTML = '';
+  
+  let globalDoneCount = 0;
+  let globalTotalCount = 0;
+
+  // 1. Show L1 and L2 always
+  const baseLevels = ['L1', 'L2'];
+  baseLevels.forEach(lvlKey => {
+    renderLevel(lvlKey);
+  });
+
+  // 2. Add Guidance Note after L2
+  const note = document.createElement('div');
+  note.className = 'card';
+  note.style.margin = '2rem 0';
+  note.style.padding = '1rem';
+  note.style.background = 'rgba(255,87,34,0.05)';
+  note.style.border = '1px solid var(--orange)';
+  note.innerHTML = `
+    <h4 style="margin:0; color:var(--orange);">💡 Level 3 Specialization</h4>
+    <p style="font-size:0.85rem; margin-top:0.5rem; color:var(--dark);">You must choose <b>either</b> Keynote or Humorous for your official progress. However, all project resources remain available for you to learn from both paths!</p>
+  `;
+  container.appendChild(note);
+
+  // 3. Choice Logic & Rendering L3s
+  const l2Total = (PATHWAY_DATA['L2']?.speeches || []).length;
+  const l2Complete = currentLevelNum > 2 || (currentLevelNum === 2 && currentProjectNum >= l2Total);
+
+  if (l2Complete && !currentSubType) {
+    // Show branching choice UI
+    const choiceBox = document.createElement('div');
+    choiceBox.className = 'card';
+    choiceBox.style.marginBottom = '2rem';
+    choiceBox.style.border = '2px solid var(--orange)';
+    choiceBox.style.textAlign = 'center';
+    choiceBox.innerHTML = `
+      <h3 style="color:var(--orange)">Unlock Level 3 🎓</h3>
+      <p style="margin-bottom:1rem;">Select your official specialization to track progress:</p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <button onclick="setL3Choice('K')" class="dash-btn" style="flex:1; min-width:160px;">🎙️ Keynote</button>
+        <button onclick="setL3Choice('H')" class="dash-btn" style="flex:1; min-width:160px; background:#333;">😂 Humorous</button>
+      </div>
+    `;
+    container.appendChild(choiceBox);
+  }
+
+  // 4. Render BOTH L3s
+  const l3Keys = ['L3K', 'L3H'];
+  l3Keys.forEach(lvlKey => {
+    const isChosen = currentSubType && lvlKey.endsWith(currentSubType);
+    const isLocked = currentSubType && !isChosen;
+    renderLevel(lvlKey, isLocked);
+  });
+
+  function renderLevel(lvlKey, isLocked = false) {
+    const def = PATHWAY_DATA[lvlKey];
+    if (!def) return;
+
+    const lvlMatch = lvlKey.match(/L(\d+)([K|H])?/);
+    const lvlNum = parseInt(lvlMatch[1]);
+    const lvlSubType = (lvlMatch[2] || '').toUpperCase();
+
+    const lvlDiv = document.createElement('div');
+    if (isLocked) lvlDiv.style.opacity = '0.4';
+    
+    const header = document.createElement('div');
+    header.className = 'level-header-row';
+    header.style.margin = '2.5rem 0 1rem';
+    header.style.padding = '0.5rem 0';
+    header.style.borderBottom = '2px solid var(--border)';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.innerHTML = `
+      <h3 style="margin:0; font-family:var(--font-display); color:var(--dark);">${def.name} ${isLocked ? '(Notion Only)' : ''}</h3>
+      <a href="${def.link}" target="_blank" style="font-size:0.75rem; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:0.05em;">🔗 Guide</a>
+    `;
+    lvlDiv.appendChild(header);
+
+    const speeches = def.speeches || [];
+    speeches.forEach((name, i) => {
+      // Only count for progress if it's the chosen one (or L1/L2)
+      const countsForProgress = !isLocked;
+      if (countsForProgress) globalTotalCount++;
+
+      const stepNum = i + 1;
+      let isDone = false;
+      let isActive = false;
+
+      if (!isLocked) {
+        if (lvlNum < currentLevelNum) {
+          isDone = true;
+        } else if (lvlNum === currentLevelNum) {
+          if (stepNum <= currentProjectNum) isDone = true;
+          else if (stepNum === currentProjectNum + 1) isActive = true;
+        }
+      }
+
+      let status = isDone ? 'done' : (isActive ? 'active-step' : 'pending');
+      let feedback = isDone ? 'Completed' : (isActive ? 'Your next speech!' : (isLocked ? 'Reference Only' : 'Upcoming'));
+
+      if (isDone) globalDoneCount++;
+
+      const el = document.createElement('div');
+      el.className = 'step-item ' + (status === 'done' ? 'done' : (status === 'active-step' ? 'active-step' : ''));
+      el.style.marginBottom = '0.75rem';
+      el.innerHTML = `<div class="step-num ${status === 'done' ? 'done' : (status === 'active-step' ? 'active-step' : 'pending')}">${status === 'done' ? '✓' : stepNum}</div>
+        <div class="step-info">
+          <h4>${lvlKey}P${stepNum}: ${name}</h4>
+          <p style="font-size:0.8rem;">${feedback}</p>
+        </div>`;
+      lvlDiv.appendChild(el);
+    });
+    container.appendChild(lvlDiv);
+  }
+
+  // Final stats update
+  document.getElementById('statSpeeches').textContent = globalDoneCount + '/' + globalTotalCount;
+  document.getElementById('statLevel').textContent = pathwayStr;
+  const pct = globalTotalCount ? Math.min(100, Math.round((globalDoneCount / globalTotalCount) * 100)) : 0;
+  setTimeout(() => { 
+    const bar = document.getElementById('pathwayBar');
+    if (bar) bar.style.width = pct + '%'; 
+  }, 300);
+  document.getElementById('progressDone').textContent = globalDoneCount + ' projects completed';
+  document.getElementById('progressTotal').textContent = 'of ' + globalTotalCount + ' total projects';
+  const badge = document.getElementById('pathwayBadge');
+  if (badge) {
+    badge.textContent = currentLevelNum === 3 ? (currentSubType==='K'?'Keynote':'Humorous') : 'Level '+currentLevelNum;
+    badge.style.background = 'var(--orange)';
+  }
+}
+
+function renderAttendance(attendance) {
+  const present = attendance.filter(a=>a.present).length;
+  const total = attendance.length;
+  const pct = total ? Math.round(present/total*100) : 0;
+  document.getElementById('attPresent').textContent = present;
+  document.getElementById('attTotal').textContent = total;
+  document.getElementById('attPct').textContent = pct+'%';
+  const cal = document.getElementById('attCalendar');
+  cal.innerHTML = '';
+  attendance.forEach(a => {
+    const cell = document.createElement('div');
+    cell.className = 'att-cell '+(a.present?'att-present':'att-absent');
+    const d = a.date ? new Date(a.date) : null;
+    cell.innerHTML = `<span class="day-num">${d?d.getDate():'?'}</span><span>${d?d.toLocaleString('default',{month:'short'}):''}</span>`;
+    cell.title = (a.present?'✓ Present':'✗ Absent')+(d?' — '+d.toLocaleDateString():'');
+    cal.appendChild(cell);
+  });
+  if (!attendance.length) cal.innerHTML = '<p style="color:var(--mid);grid-column:1/-1;">No attendance records yet.</p>';
+}
+
+function renderAchievements(data) {
+  const done = (data.speeches||[]).filter(s=>s.status==='done').length;
+  const pct = data.attendance?.length ? Math.round(data.attendance.filter(a=>a.present).length/data.attendance.length*100) : 0;
+  const badges = [
+    {icon:'🎤',name:'First Words',desc:'Complete your first speech',earned:done>=1},
+    {icon:'🌟',name:'Rising Star',desc:'Complete 3 speeches',earned:done>=3},
+    {icon:'🏅',name:'Level Up!',desc:'Complete a full level',earned:done>=6},
+    {icon:'📅',name:'Show Up',desc:'80%+ attendance',earned:pct>=80},
+    {icon:'💯',name:'Perfect Month',desc:'100% attendance in a month',earned:false},
+    {icon:'🤝',name:'Mentor',desc:'Guide a fellow member',earned:!!(data.mentees?.length)},
+    {icon:'⭐',name:'Point Hunter',desc:'Earn 50+ points',earned:(data.points||0)>=50},
+    {icon:'🎙️',name:'Keynote Ready',desc:'Reach Level 3 Keynote',earned:data.pathway==='L3K'},
+    {icon:'😂',name:'Comedy King',desc:'Reach Level 3 Humorous',earned:data.pathway==='L3H'},
+  ];
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = badges.map(b=>`
+    <div class="badge-item ${b.earned?'earned':'locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+    </div>`).join('');
+}
+
+async function loadLeaderboard() {
+  const tbody = document.getElementById('leaderboardBody');
+  try {
+    const q = query(collection(db,'leaderboard'), orderBy('points','desc'));
+    const snap = await getDocs(q);
+    tbody.innerHTML = '';
+    let rank = 1;
+    snap.forEach(d => {
+      const m = d.data();
+      const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+      const isMe = d.id === currentUser?.uid;
+      const rankCls = rank<=3?'rank-'+rank:'rank-other';
+      const tr = document.createElement('tr');
+      if(isMe) tr.style.background = 'rgba(255,87,34,0.05)';
+      tr.innerHTML = `
+        <td><div class="rank-badge ${rankCls}">${rank}</div></td>
+        <td><div class="member-cell"><div class="member-avatar" style="background:${isMe?'var(--orange)':'#888'}">${initials}</div>${m.name}${isMe?' <span style="color:var(--orange);font-size:0.72rem;font-weight:700;">(you)</span>':''}</div></td>
+        <td>${m.level||'L1'}</td>
+        <td>${m.speeches||0}</td>
+        <td><strong>${m.points||0}</strong></td>`;
+      tbody.appendChild(tr);
+      rank++;
+    });
+    if(snap.empty) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mid);">No leaderboard data yet.</td></tr>';
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mid);">Could not load leaderboard.</td></tr>';
+  }
+}
+
+async function loadMentorship(data) {
+  const mentorDiv = document.getElementById('mentorInfo');
+  if (data.mentor) {
+    try {
+      const snap = await getDoc(doc(db,'users',data.mentor));
+      if(snap.exists()) {
+        const m = snap.data();
+        const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+        mentorDiv.innerHTML = `<div class="mentor-card"><div class="mentor-avatar">${initials}</div><div class="mentor-info"><h3>${m.name}</h3><p>${m.dept||''} · ${m.email||''}</p><p style="color:var(--orange);font-size:0.82rem;font-weight:700;margin-top:0.25rem;">Your Mentor</p></div></div>`;
+      }
+    } catch(e) { mentorDiv.innerHTML = '<p style="color:var(--mid);">Mentor info unavailable.</p>'; }
+  } else {
+    mentorDiv.innerHTML = '<p style="color:var(--mid);">No mentor assigned yet. Contact a core member to get paired.</p>';
+  }
+  if(data.mentees?.length > 0) {
+    document.getElementById('menteesCard').style.display = 'block';
+    const list = document.getElementById('menteesList');
+    list.innerHTML = '';
+    for(const uid of data.mentees) {
+      try {
+        const snap = await getDoc(doc(db,'users',uid));
+        if(snap.exists()) {
+          const m = snap.data();
+          const initials = (m.name||'M').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+          list.innerHTML += `<div class="mentee-item"><div class="member-avatar">${initials}</div><div><div style="font-weight:700">${m.name}</div><div style="font-size:0.85rem;color:var(--mid)">${m.dept||''} · ${m.pathway||'L1'}</div></div></div>`;
+        }
+      } catch(e){}
+    }
+  }
+}
+
+// Section switching + chart init on analysis reveal
+window.showSection = function(id) {
+  document.querySelectorAll('.dash-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  document.querySelectorAll('.dash-nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.mob-nav-item').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll(`[onclick="showSection('${id}')"]`).forEach(el=>el.classList.add('active'));
+  if(id === 'analysis' && !chartsRendered && userData) { renderCharts(userData); chartsRendered = true; }
+};
+
+function renderCharts(data) {
+  const skills = data.skills || {};
+  new Chart(document.getElementById('radarChart'), {
+    type:'radar',
+    data:{
+      labels:['Delivery','Structure','Vocal Variety','Eye Contact','Confidence','Persuasion'],
+      datasets:[{label:'My Skills',data:[skills.delivery||3,skills.structure||4,skills.vocal||3,skills.eyeContact||5,skills.confidence||2,skills.persuasion||4],fill:true,backgroundColor:'rgba(255,87,34,0.15)',borderColor:'#FF5722',pointBackgroundColor:'#FF5722',pointBorderColor:'white',pointBorderWidth:2}]
+    },
+    options:{scales:{r:{min:0,max:5,ticks:{stepSize:1},grid:{color:'rgba(0,0,0,0.06)'}}},plugins:{legend:{display:false}}}
+  });
+
+  const speechesDone = (data.speeches||[]).filter(s=>s.status==='done');
+  new Chart(document.getElementById('progressChart'), {
+    type:'line',
+    data:{
+      labels:speechesDone.map((_,i)=>`Speech ${i+1}`),
+      datasets:[{label:'Speeches Completed',data:speechesDone.map((_,i)=>i+1),borderColor:'#FF5722',backgroundColor:'rgba(255,87,34,0.08)',fill:true,tension:0.4,pointRadius:5,pointBackgroundColor:'#FF5722',pointBorderColor:'white',pointBorderWidth:2}]
+    },
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+
+  const sb = document.getElementById('skillBars');
+  const skillData = [
+    {label:'Delivery',value:skills.delivery||3},
+    {label:'Structure',value:skills.structure||4},
+    {label:'Vocal Variety',value:skills.vocal||3},
+    {label:'Eye Contact',value:skills.eyeContact||5},
+    {label:'Confidence',value:skills.confidence||2},
+    {label:'Persuasion',value:skills.persuasion||4},
+  ];
+  sb.innerHTML = skillData.map(s=>`
+    <div class="chart-bar-wrap">
+      <div class="chart-label"><span>${s.label}</span><span>${s.value}/5</span></div>
+      <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${s.value/5*100}%"></div></div>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>

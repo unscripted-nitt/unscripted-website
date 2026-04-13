@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Unscripted NITT</title>
+  <meta name="description" content="Member login for Unscripted NIT Trichy. Sign in with your NITT webmail." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../icons/favicon.png" type="image/png" />
+</head>
+<body>
+
+<div class="login-wrapper">
+  <div class="login-bg-blob"></div>
+  <div class="login-bg-blob" style="top:auto;bottom:-150px;left:-150px;right:auto;background:radial-gradient(circle,#FF9800,transparent);opacity:0.12;"></div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="../icons/logo.png" alt="Unscripted NITT" />
+    </div>
+    <h2>Welcome Back</h2>
+    <p>Sign in with your NIT Trichy webmail to access your member dashboard, pathway progress, and more.</p>
+
+    <div class="form-group">
+      <label for="email">NITT Webmail</label>
+      <input type="email" id="email" placeholder="rollnumber@nitt.edu" autocomplete="email" />
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+    </div>
+
+    <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In →</button>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
+    <p class="login-hint" style="margin-top:0.5rem;"><a href="../index.html">← Back to home</a></p>
+    <p class="login-hint" style="margin-top:1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+      <a href="admin.html" style="color:var(--orange); font-weight:700;">Admin Portal Access →</a><br><br>
+      <button onclick="emergencyInit()" style="background:none; border:1px solid var(--border); color:var(--mid); padding:0.5rem 1rem; border-radius:100px; cursor:pointer; font-size:0.75rem;">Fix Access Error (Initialize Admin)</button>
+    </p>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from '../js/firebase-config.js';
+import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Safer redirect check
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) window.location.href = 'dashboard.html';
+  }
+});
+
+window.doLogin = async function() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errorMsg');
+  err.style.display = 'none';
+
+  if (!email.endsWith('@nitt.edu')) {
+    err.textContent = 'Please use your NIT Trichy webmail (@nitt.edu)';
+    err.style.display = 'block'; return;
+  }
+  if (!password) {
+    err.textContent = 'Please enter your password.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
+    if (userDoc.exists()) {
+      window.location.href = 'dashboard.html';
+    } else {
+      err.textContent = 'Account not registered in Unscripted. Contact a core member.';
+      err.style.display = 'block';
+      await auth.signOut();
+    }
+  } catch(e) {
+    const msgs = {
+      'auth/wrong-password': 'Incorrect password.',
+      'auth/user-not-found': 'No account found for this email.',
+      'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
+      'auth/invalid-email': 'Invalid email format.',
+      'auth/invalid-credential': 'Incorrect email or password.',
+    };
+    err.textContent = msgs[e.code] || 'Login failed. Check your credentials.';
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = 'Log In →';
+    btn.disabled = false;
+  }
+};
+
+window.emergencyInit = async function() {
+  const user = auth.currentUser;
+  if (!user) { alert('Please log in with your email/password first!'); return; }
+  const btn = event.target;
+  btn.textContent = 'Fixing...';
+  try {
+    const profile = { name: 'Admin', email: user.email, role: 'admin', pathway: 'L1', points: 0, created: serverTimestamp() };
+    await setDoc(doc(db, 'users', user.uid), profile);
+    await setDoc(doc(db, 'members', user.uid), { name: 'Admin', role: 'admin' });
+    await setDoc(doc(db, 'leaderboard', user.uid), { name: 'Admin', points: 0, level: 'L1' });
+    alert('✓ Admin profile initialized! You can now access the portal.');
+    window.location.href = 'admin.html';
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { btn.textContent = 'Fix Access Error (Initialize Admin)'; }
+};
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') window.doLogin();
+});
+</script>
+</body>
+</html>

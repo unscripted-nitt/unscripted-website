@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — Unscripted NITT</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="icon" href="../icons/logo.png" type="image/png" />
+</head>
+<body style="background: #f3f5f7;">
+
+<div class="login-wrapper">
+  <div class="login-bg-blob" style="background: radial-gradient(circle, #ffece6, transparent); opacity:0.6;"></div>
+
+  <div class="login-card" style="border-top: 4px solid var(--orange); background:#fff; box-shadow: 0 10px 40px rgba(0,0,0,0.08);">
+    <div class="login-logo">
+      <img src="../icons/logo.png" alt="Unscripted NITT" />
+    </div>
+    <h2 style="color:#1a1a1a">Admin Portal</h2>
+    <p style="color:#666">Authorized access only. Use your verified administrator credentials.</p>
+
+    <div class="form-group">
+      <label for="email" style="color:#1a1a1a">Admin Email</label>
+      <input type="email" id="email" placeholder="admin@nitt.edu" autocomplete="email" style="background:#fff; border:1px solid #ddd; color:#1a1a1a;" />
+    </div>
+    <div class="form-group">
+      <label for="password" style="color:#1a1a1a">Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" style="background:#fff; border:1px solid #ddd; color:#1a1a1a;" />
+    </div>
+
+    <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()" style="background:var(--orange)">Enter Admin Portal →</button>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <p class="login-hint" style="margin-top:1.5rem;"><a href="login.html">← Use Member Login</a></p>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from '../js/firebase-config.js';
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists() && snap.data().role === 'admin') {
+      window.location.href = 'admin-dashboard.html';
+    }
+  }
+});
+
+window.doLogin = async function() {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('errorMsg');
+  err.style.display = 'none';
+
+  if (!email || !password) {
+    err.textContent = 'Please fill all fields.';
+    err.style.display = 'block'; return;
+  }
+
+  btn.textContent = 'Authenticating...';
+  btn.disabled = true;
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const snap = await getDoc(doc(db, 'users', cred.user.uid));
+    
+    if (snap.exists() && snap.data().role === 'admin') {
+       window.location.href = 'admin-dashboard.html';
+    } else {
+       err.textContent = 'Access Denied: You do not have administrator privileges.';
+       err.style.display = 'block';
+       await signOut(auth);
+    }
+  } catch(e) {
+    console.error(e);
+    err.textContent = 'Invalid credentials. Access restricted.';
+    err.style.display = 'block';
+  } finally {
+    btn.textContent = 'Enter Admin Portal →';
+    btn.disabled = false;
+  }
+};
+</script>
+</body>
+</html>
