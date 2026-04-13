@@ -39,8 +39,7 @@
     <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
     <p class="login-hint" style="margin-top:0.5rem;"><a href="../index.html">← Back to home</a></p>
     <p class="login-hint" style="margin-top:1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-      <a href="admin.html" style="color:var(--orange); font-weight:700;">Admin Portal Access →</a><br><br>
-      <button onclick="emergencyInit()" style="background:none; border:1px solid var(--border); color:var(--mid); padding:0.5rem 1rem; border-radius:100px; cursor:pointer; font-size:0.75rem;">Fix Access Error (Initialize Admin)</button>
+      <a href="admin-login.html" style="color:var(--orange); font-weight:700;">Admin Portal Access →</a>
     </p>
   </div>
 </div>
@@ -103,21 +102,6 @@ window.doLogin = async function() {
   }
 };
 
-window.emergencyInit = async function() {
-  const user = auth.currentUser;
-  if (!user) { alert('Please log in with your email/password first!'); return; }
-  const btn = event.target;
-  btn.textContent = 'Fixing...';
-  try {
-    const profile = { name: 'Admin', email: user.email, role: 'admin', pathway: 'L1', points: 0, created: serverTimestamp() };
-    await setDoc(doc(db, 'users', user.uid), profile);
-    await setDoc(doc(db, 'members', user.uid), { name: 'Admin', role: 'admin' });
-    await setDoc(doc(db, 'leaderboard', user.uid), { name: 'Admin', points: 0, level: 'L1' });
-    alert('✓ Admin profile initialized! You can now access the portal.');
-    window.location.href = 'admin.html';
-  } catch(e) { alert('Error: ' + e.message); }
-  finally { btn.textContent = 'Fix Access Error (Initialize Admin)'; }
-};
 
 // Enter key support
 document.addEventListener('keydown', e => {
