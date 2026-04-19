@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Members — Unscripted NITT</title>
+  <title>Members Unscripted NITT</title>
   <meta name="description" content="Meet the members of Unscripted, the public speaking club of NIT Trichy." />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="icon" href="../icons/logo.png" type="image/png" />
+  <link rel="icon" href="../icons/favicon.png" type="image/png" />
 </head>
 <body>
 
@@ -36,9 +35,9 @@
 <div class="page-content">
   <div class="filter-bar" id="filterBar">
     <button class="filter-btn active" onclick="filterMembers('all', this)">All Members</button>
-    <button class="filter-btn" onclick="filterMembers('core', this)">⚡ Core Team</button>
-    <button class="filter-btn" onclick="filterMembers('mentor', this)">🤝 Mentors</button>
-    <button class="filter-btn" onclick="filterMembers('member', this)">👤 Members</button>
+    <button class="filter-btn" onclick="filterMembers('core', this)">Core Team</button>
+    <button class="filter-btn" onclick="filterMembers('mentor', this)">Mentors</button>
+    <button class="filter-btn" onclick="filterMembers('member', this)">Members</button>
   </div>
   <div class="members-grid" id="membersGrid">
     <!-- Loading skeletons -->
@@ -55,8 +54,8 @@
   <div class="footer-inner">
     <div class="footer-top">
       <div class="footer-brand">
-        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" /></div>
-        <p class="footer-tagline">Official public speaking club of NIT Trichy.</p>
+        <div class="footer-logo"><img src="../icons/logo.png" alt="Unscripted" style="height:120px; width:auto;" /></div>
+        <p class="footer-tagline">Unscripted NITT</p>
       </div>
       <div class="footer-nav"><h4>Pages</h4><ul>
         <li><a href="../index.html#events">Events</a></li>
@@ -84,8 +83,10 @@ async function loadMembers() {
   try {
     const q = query(collection(db,'members'), orderBy('name'));
     const snap = await getDocs(q);
-    allMembers = [];
-    snap.forEach(doc => allMembers.push({id:doc.id,...doc.data()}));
+    snap.forEach(doc => {
+      const data = doc.data();
+      if (data.isActive !== false) allMembers.push({id:doc.id, ...data});
+    });
     if (allMembers.length === 0) {
       document.getElementById('membersGrid').innerHTML = '<p style="color:var(--mid);text-align:center;grid-column:1/-1;padding:3rem;">Member list coming soon!</p>';
       return;
@@ -101,12 +102,12 @@ function renderMembers(members) {
   grid.innerHTML = members.map((m, i) => {
     const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
     const color = m.avatarColor || AVATAR_COLORS[i % AVATAR_COLORS.length];
-    const roleLabel = m.role === 'core' ? '⚡ Core Team' : m.role === 'mentor' ? '🤝 Mentor' : '👤 Member';
+    const roleLabel = m.role === 'core' ? 'Core Team' : m.role === 'mentor' ? 'Mentor' : 'Member';
     return `<div class="member-card fade-up visible">
       <div class="avatar" style="background:${color}">${initials}</div>
       <h3>${m.name||'Member'}</h3>
-      <div class="role">${roleLabel}</div>
-      <div class="dept">${m.dept||''} ${m.year?`· ${m.year}`:''}</div>
+        <div class="dept">${m.dept||''} ${m.year?`: ${m.year}`:''}</div>
+        <div class="video-meta">${roleLabel}</div>
     </div>`;
   }).join('');
 }

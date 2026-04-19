@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard — Unscripted NITT</title>
+  <title>Admin Dashboard Unscripted NITT</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
-  <link rel="icon" href="../icons/logo.png" type="image/png" />
+  <link rel="icon" href="../icons/favicon.png" type="image/png" />
   
   <!-- Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -26,7 +25,7 @@
     }
     
     * { box-sizing: border-box; }
-    body { background: var(--admin-bg); color: var(--text-main); font-family: 'DM Sans', sans-serif; margin:0; line-height:1.5; }
+    body { background: var(--admin-bg); color: var(--text-main); font-family: 'Times New Roman', Times, serif; margin:0; line-height:1.5; }
 
     /* Layout */
     .dash-top-nav { 
@@ -78,7 +77,7 @@
 
     /* Components */
     .card { background: var(--admin-card); border: 1px solid var(--border); padding: 2rem; border-radius: 20px; margin-bottom: 2.5rem; box-shadow: 0 4px 25px rgba(0,0,0,0.04); }
-    .section-title { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 2rem; color: #000; }
+    .section-title { font-family: serif; font-size: 2rem; margin-bottom: 2rem; color: #000; }
     
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; padding: 1.25rem 1rem; color: #888; text-transform: uppercase; font-size: 0.7rem; border-bottom: 1px solid var(--border); letter-spacing: 0.08em; font-weight: 800; }
@@ -109,6 +108,7 @@
       font-family: inherit; 
       font-size: 0.95rem; 
       transition: 0.2s;
+      width: 100%;
     }
     input:focus, select:focus { outline: none; border-color: var(--admin-accent); background: #fff; box-shadow: 0 0 0 4px rgba(255,87,34,0.05); }
 
@@ -135,21 +135,51 @@
     .badge { padding: 5px 12px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
     .badge-admin { background: #fff3ef; color: var(--admin-accent); }
     .badge-user { background: #f0f2f5; color: #777; }
+
+    /* Hamburger Menu */
+    .hamburger { display: none; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-mid); }
+
+    /* Responsive Queries */
+    @media (max-width: 1024px) {
+      .sidebar { 
+        transform: translateX(-100%); 
+        transition: transform 0.3s ease; 
+        z-index: 3000; 
+        background: #fff; 
+        box-shadow: 10px 0 30px rgba(0,0,0,0.05);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .main-content { margin-left: 0; padding: 2rem 1.5rem; }
+      .hamburger { display: block; }
+      .dash-top-nav { padding: 0 1.5rem; }
+      #adminNameWrap { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .grid-insights { grid-template-columns: 1fr; }
+      .stat-box { padding: 1.5rem; }
+      .stat-box .num { font-size: 2.2rem; }
+      .admin-grid-2, .admin-grid-half { grid-template-columns: 1fr; gap: 1.5rem; }
+      .section-title { font-size: 1.6rem; }
+      .card { padding: 1.25rem; }
+      .modal-content { padding: 2rem; }
+    }
   </style>
 </head>
 <body>
 
 <div class="dash-top-nav">
   <div style="display:flex;align-items:center;gap:1.2rem;">
-    <img src="../icons/logo.png" alt="Unscripted" style="height:40px;" />
-    <span style="letter-spacing:0.15em; font-weight:900; font-size:1rem; border-left: 2px solid #eee; padding-left: 1.2rem;">ADMIN <span style="color:var(--admin-accent)">COMMAND</span></span>
+    <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <img src="../icons/logo.png" alt="Unscripted" style="height:32px;" />
+    <span style="letter-spacing:0.15em; font-weight:900; font-size:0.9rem; border-left: 2px solid #eee; padding-left: 1.2rem; display:none;" id="adminLabel">ADMIN <span style="color:var(--admin-accent)">COMMAND</span></span>
   </div>
-  <div style="display:flex; align-items:center; gap:2rem;">
-    <div style="text-align:right;">
+  <div style="display:flex; align-items:center; gap:1.5rem;">
+    <div style="text-align:right;" id="adminNameWrap">
       <div id="adminName">Loading...</div>
       <div style="font-size:0.7rem; color:#aaa; font-weight:700; text-transform:uppercase;">Verified Administrator</div>
     </div>
-    <button onclick="doLogout()" style="background:#f0f2f5; color:#555; border:none; padding:0.7rem 1.5rem; border-radius:12px; cursor:pointer; font-weight:700; font-size:0.85rem; transition:0.2s;">Logout</button>
+    <button onclick="doLogout()" style="background:#f0f2f5; color:#555; border:none; padding:0.6rem 1.2rem; border-radius:12px; cursor:pointer; font-weight:700; font-size:0.8rem; transition:0.2s;">Logout</button>
   </div>
 </div>
 
@@ -160,6 +190,9 @@
       <a class="dash-nav-item active" onclick="showSection('insights')">
         <i class="fa-solid fa-chart-line"></i> Club Statistics
       </a>
+      <a class="dash-nav-item" onclick="showSection('matrix')">
+        <i class="fa-solid fa-trophy"></i> Leaderboard Matrix
+      </a>
       
       <div class="sidebar-label" style="margin-top:2.5rem;">Club Ops</div>
       <a class="dash-nav-item" onclick="showSection('users')">
@@ -168,13 +201,27 @@
       <a class="dash-nav-item" onclick="showSection('attendance')">
         <i class="fa-solid fa-calendar-check"></i> Bulk Attendance
       </a>
-      <a class="dash-nav-item" onclick="showSection('leaderboard')">
-        <i class="fa-solid fa-award"></i> Leaderboard
+      <a class="dash-nav-item" onclick="showSection('roles')">
+        <i class="fa-solid fa-clipboard-user"></i> Role Assignments
       </a>
       
       <div class="sidebar-label" style="margin-top:2.5rem;">Public Site</div>
       <a class="dash-nav-item" onclick="showSection('events')">
         <i class="fa-solid fa-bullhorn"></i> Event Manager
+      </a>
+      <a class="dash-nav-item" onclick="showSection('gallery')">
+        <i class="fa-solid fa-images"></i> Gallery Manager
+      </a>
+      <a class="dash-nav-item" onclick="showSection('videos')">
+        <i class="fa-solid fa-video"></i> Video Manager
+      </a>
+      <a class="dash-nav-item" onclick="showSection('notifications')">
+        <i class="fa-solid fa-bell"></i> Send Notification
+      </a>
+      
+      <div class="sidebar-label" style="margin-top:2.5rem;">Personal</div>
+      <a class="dash-nav-item" href="dashboard.html">
+        <i class="fa-solid fa-user-circle"></i> View My Dashboard
       </a>
     </nav>
   </aside>
@@ -189,14 +236,35 @@
         <div class="stat-box"><div class="label">Speeches Delivered</div><div class="num" id="insightSpeeches">0</div></div>
         <div class="stat-box"><div class="label">Attendance rate</div><div class="num" id="insightAvgAtt">0%</div></div>
       </div>
-      <div style="display:grid; grid-template-columns: 3fr 2fr; gap:2rem;">
-        <div class="card">
-          <h3 style="margin-top:0;">Level Distribution</h3>
-          <canvas id="growthChart" height="280"></canvas>
+
+      <div class="card" style="margin-top:2rem;">
+        <h3 style="margin-top:0; margin-bottom:1.5rem;">Upcoming Meet Roles</h3>
+        <div id="upcomingRolesContainer">
+          <p style="padding:2rem; text-align:center; color:#999;">Loading upcoming roles...</p>
         </div>
-        <div class="card">
-          <h3 style="margin-top:0;">Engagement Status</h3>
-          <canvas id="statusChart" height="280"></canvas>
+      </div>
+    </div>
+
+    <!-- SECTION: MATRIX -->
+    <div class="dash-section" id="section-matrix">
+      <h1 class="section-title">Club Leaderboard</h1>
+      <p style="color:var(--text-mid); margin-bottom:2rem;">Aggregated role points and historical club involvement matrix.</p>
+      
+      <div class="card" style="padding:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:1.5rem 1.5rem 0 1.5rem;">
+          <h3 style="margin:0;">Leaderboard Matrix</h3>
+          <button class="btn-primary" onclick="exportRolesCSV()" style="padding:0.5rem 1rem; border-radius:8px; background:#4CAF50; border:none; display:flex; gap:0.5rem; align-items:center; font-size:0.85rem;"><i class="fa-solid fa-file-excel"></i> Export Matrix</button>
+        </div>
+        <div class="scroll-container" style="padding:1.5rem 1.5rem 2.5rem 1.5rem;">
+          <table style="width:100%; border-collapse:collapse; min-width: 1500px; white-space:nowrap; border:1px solid #eee; font-size: 0.85rem;" id="rolesTable">
+            <thead>
+              <tr style="background:#5c7aff; color:white; font-weight:800;" id="roleTableHeader">
+                <!-- Built by JS -->
+              </tr>
+            </thead>
+            <tbody id="roleTableBody">
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -221,77 +289,249 @@
 
     <!-- SECTION: ATTENDANCE -->
     <div class="dash-section" id="section-attendance">
-      <h1 class="section-title">Bulk Attendance</h1>
+      <h1 class="section-title">Club Attendance</h1>
       <div class="card" style="max-width:900px;">
-        <p style="color:var(--text-mid); margin-bottom:2.5rem; font-size:1.1rem;">Upload a CSV or Excel sheet with attendee names. All others will be marked absent automatically.</p>
+        <p style="color:var(--text-mid); margin-bottom:2rem; font-size:1.1rem;">Select the meet date and check the members who are present.</p>
         
-        <div style="display:grid; grid-template-columns: 1fr 2fr; gap:2.5rem; align-items:start;">
+        <div class="admin-grid-2">
           <div style="display:flex; flex-direction:column; gap:0.75rem;">
-            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Meeting Date</label>
-            <input type="date" id="attDate" style="width:100%; border-radius:15px; font-weight:700;" />
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Meeting Event</label>
+            <select id="attEventSelect" style="width:100%; border-radius:15px; font-weight:700;">
+              <option value="">-- Choose an Event --</option>
+            </select>
+            <div style="margin-top:2rem; display:flex; gap:0.5rem;">
+              <button class="btn-ghost" onclick="setAllAttendance(true)" style="flex:1; padding:0.6rem; font-size:0.75rem; background:#e8f5e9; color:#2e7d32; border-radius:10px; border:none; cursor:pointer; font-weight:700;">All Present</button>
+              <button class="btn-ghost" onclick="setAllAttendance(false)" style="flex:1; padding:0.6rem; font-size:0.75rem; background:#ffebee; color:#c62828; border-radius:10px; border:none; cursor:pointer; font-weight:700;">All Absent</button>
+            </div>
           </div>
           <div>
-            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase; margin-bottom:0.75rem; display:block;">Attendee List</label>
-            <input type="file" id="attFile" accept=".csv, .xlsx, .xls" style="display:none;" onchange="handleAttFile(this)" />
-            <div class="bulk-dropzone" onclick="document.getElementById('attFile').click()" id="dropzoneText">
-               <i class="fa-solid fa-file-excel" style="font-size:2.5rem; color:#ddd; margin-bottom:1rem; display:block;"></i>
-               <strong>Browse Excel/CSV</strong>
-               <p style="font-size:0.8rem; color:#aaa; margin-top:0.4rem;">Matches Name, Roll or Email</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Member Checklist</label>
+              <input type="text" id="attSearch" placeholder="Filter names..." style="padding:0.4rem 0.8rem; font-size:0.85rem; width:180px;" onkeyup="filterAttList()" />
+            </div>
+            <div id="attList" style="max-height:400px; overflow-y:auto; border:1px solid var(--border); border-radius:20px; background:#fafafa;">
+              <p style="padding:2rem; text-align:center; color:#999;">Loading members...</p>
             </div>
           </div>
         </div>
 
-        <div id="attPreview" style="display:none; margin-top:3rem; border-top:1px solid var(--border); padding-top:2.5rem;">
-          <h3 style="margin-top:0;">Found <span id="attCount" style="color:var(--admin-accent)">0</span> members in file</h3>
-          <div style="background:#f9f9f9; padding:1.5rem; border-radius:18px; max-height:220px; overflow-y:auto; margin-bottom:2rem; display:flex; flex-wrap:wrap; gap:8px;" id="attPreviewList"></div>
-          <button class="btn-primary" onclick="submitBulkAttendance()" style="width:100%; padding:1.2rem;">Commit Attendance for Entire Batch →</button>
+        <div style="margin-top:2.5rem; border-top:1px solid var(--border); padding-top:2.5rem;">
+          <button class="btn-primary" onclick="submitAttendanceChecklist()" style="width:100%; padding:1.2rem; border-radius:100px;">Save Meeting Attendance →</button>
         </div>
       </div>
     </div>
 
-    <!-- SECTION: LEADERBOARD -->
-    <div class="dash-section" id="section-leaderboard">
-      <h1 class="section-title">Leaderboard Operations</h1>
-      <div class="card" style="padding:0; border-radius:24px;">
-        <table>
-          <thead>
-            <tr><th style="padding-left:2rem;">Rank</th><th>Member</th><th>Points</th><th style="padding-right:2rem; text-align:right;">Level</th></tr>
-          </thead>
-          <tbody id="adminLeaderboardBody"></tbody>
-        </table>
-      </div>
-    </div>
 
-    <!-- SECTION: EVENTS MANAGER -->
+    <!-- SECTION: ROLE ASSIGNMENTS -->
+    <div class="dash-section" id="section-roles" style="min-width: 0;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+        <h1 class="section-title" style="margin:0;">Meeting Roles Assignment</h1>
+      </div>
+
+      <div class="card" style="margin-bottom:2rem; overflow:visible;">
+        <h3 style="margin-top:0;">Record New Meeting Roles</h3>
+        <p style="color:var(--text-mid); font-size:0.9rem; margin-bottom:1.5rem;">Assign roles to members. The selections here will automatically add role badges to their profile.</p>
+        <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:2rem;">
+          <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Select Event</label>
+          <select id="roleEventSelect" onchange="loadRolesForSelectedEvent()" style="padding:0.9rem 1.2rem; border-radius:12px; font-weight:700; max-width: 500px;">
+            <option value="">Loading events...</option>
+          </select>
+          <p style="font-size:0.75rem; color:#999; margin:0;">Choose an event created in the Event Manager.</p>
+        </div>
+
+        <div id="rolesSelectorsContainer">
+          <p style="color:#999;">Loading user selection...</p>
+        </div>
+
+        <div style="margin-top:2.5rem; border-top:1px solid var(--border); padding-top:1.5rem;">
+          <button class="btn-primary" id="saveRolesBtn" onclick="saveMeetRoles()" style="padding:1.2rem 2rem; border-radius:100px;">Save Role Assignments →</button>
+        </div>
+      </div>
+
+
+    </div>
     <div class="dash-section" id="section-events">
-      <h1 class="section-title">Manage Next Event</h1>
-      <div class="card" style="max-width:700px;">
-        <p style="color:var(--text-mid); margin-bottom:2rem;">This updates the "Upcoming Events" section on the public website.</p>
-        
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem;">
+        <h1 class="section-title" style="margin:0;">Events Management</h1>
+        <button class="btn-primary" onclick="toggleAddEventForm()" id="toggleEventBtn" style="padding:0.7rem 1.5rem; border-radius:12px;">+ Add New Event</button>
+      </div>
+
+      <!-- Add/Edit form (hidden by default) -->
+      <div class="card" id="eventFormCard" style="max-width:800px; display:none; border:2px solid var(--admin-accent); animation: slideDown 0.3s ease;">
+        <h3 id="eventFormTitle">Add New Event</h3>
+        <input type="hidden" id="editEventId" />
         <div style="display:flex; flex-direction:column; gap:1.5rem;">
           <div style="display:flex; flex-direction:column; gap:0.5rem;">
             <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Event Title</label>
             <input type="text" id="evTitle" placeholder="e.g. Speak-Up Workshop" />
           </div>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+          <div class="admin-grid-half">
             <div style="display:flex; flex-direction:column; gap:0.5rem;">
-              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Date & Time</label>
-              <input type="text" id="evDate" placeholder="e.g. 25th Oct, 5:00 PM" />
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Event Date</label>
+              <input type="date" id="evDate" />
             </div>
             <div style="display:flex; flex-direction:column; gap:0.5rem;">
-              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Registration Link</label>
-              <input type="url" id="evLink" placeholder="https://forms.gle/..." />
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Event Type</label>
+              <select id="evType">
+                <option value="upcoming">🗓️ Upcoming</option>
+                <option value="past">✓ Past</option>
+              </select>
             </div>
           </div>
           <div style="display:flex; flex-direction:column; gap:0.5rem;">
             <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Short Description</label>
             <textarea id="evDesc" rows="3" placeholder="Explain what the event is about..."></textarea>
           </div>
-          <button class="btn-primary" id="saveEventBtn" onclick="saveEvent()" style="padding:1.1rem;">Update Website Event →</button>
+          <div style="display:flex; gap:1rem;">
+            <button class="btn-primary" id="saveEventBtn" onclick="saveEvent()" style="flex:2; padding:1.1rem; border-radius:12px;">Save Event →</button>
+            <button class="btn-ghost" onclick="toggleAddEventForm()" style="flex:1; padding:1.1rem; border-radius:12px; background:#f0f0f0;">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Event List -->
+      <div class="card" style="padding:0; overflow-x:auto; border-radius:24px;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#fafafa;">
+              <th style="padding:1.2rem 2rem; text-align:left; font-size:0.75rem; color:#999; text-transform:uppercase;">Event Details</th>
+              <th style="padding:1.2rem; text-align:left; font-size:0.75rem; color:#999; text-transform:uppercase;">Status</th>
+              <th style="padding:1.2rem 2rem; text-align:right; font-size:0.75rem; color:#999; text-transform:uppercase;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="adminEventsTableBody">
+            <tr><td colspan="3" style="padding:3rem; text-align:center; color:#999;">Loading events...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION: GALLERY MANAGER -->
+    <div class="dash-section" id="section-gallery">
+      <h1 class="section-title">Gallery Manager</h1>
+      <div class="grid-insights" style="margin-bottom:2rem;">
+        <div class="card" style="margin-bottom:0;">
+          <h3 style="margin-top:0;">Upload Photo</h3>
+          <div style="display:flex; flex-direction:column; gap:1.2rem;">
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.7rem; color:#999; text-transform:uppercase;">Select Image</label>
+              <input type="file" id="galFile" accept="image/*" style="display:none;" onchange="previewGalleryImage(this)" />
+              <div class="bulk-dropzone" onclick="document.getElementById('galFile').click()" id="galDropzone" style="padding:2rem;">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:2rem; color:#ddd; margin-bottom:0.5rem; display:block;"></i>
+                <strong id="galFileName">Choose or Drop Image</strong>
+              </div>
+              <div id="galPreviewWrap" style="display:none; margin-top:1rem; text-align:center;">
+                <img id="galPreview" src="" style="max-height:150px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1);" />
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.7rem; color:#999; text-transform:uppercase;">Caption</label>
+              <input type="text" id="galCaption" placeholder="e.g. March Monthly Meet" />
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.7rem; color:#999; text-transform:uppercase;">Visibility</label>
+              <select id="galVisibility">
+                <option value="public">Visible to Everyone (Public)</option>
+                <option value="members">Members Only</option>
+              </select>
+            </div>
+            <button class="btn-primary" id="uploadGalBtn" onclick="uploadToGallery()" style="padding:1rem;">Upload to Gallery →</button>
+            <div id="galUploadProgress" style="display:none; width:100%; height:6px; background:#eee; border-radius:100px; overflow:hidden;">
+              <div id="galProgressBar" style="width:0%; height:100%; background:var(--admin-accent); transition: width 0.3s;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <h3 style="margin-top:0;">Gallery Privacy</h3>
+          <p style="color:var(--text-mid); font-size:0.9rem;">
+            Photos marked as <strong>Public</strong> will appear on the homepage for all visitors.
+          </p>
+          <p style="color:var(--text-mid); font-size:0.9rem; margin-top:1rem;">
+            Photos marked as <strong>Members Only</strong> will only be visible to logged-in members.
+          </p>
+          <div style="margin-top:2rem; padding:1.5rem; background:#fff3ef; border-radius:15px; border:1px solid rgba(255,87,34,0.1);">
+            <i class="fa-solid fa-shield-halved" style="color:var(--admin-accent); font-size:1.5rem; margin-bottom:0.5rem;"></i>
+            <div style="font-weight:700; font-size:0.9rem; color:var(--text-main);">Secure Access</div>
+            <p style="font-size:0.8rem; color:var(--text-mid); margin-top:0.25rem;">Visibility is strictly enforced on the public website via Firestore queries.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0; margin-bottom:1.5rem;">Manage Photos</h3>
+        <div id="galList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem;">
+          <div style="color:var(--text-mid); grid-column:1/-1; text-align:center; padding:3rem;">Loading gallery...</div>
+        </div>
+      </div>
+
+    <!-- SECTION: VIDEOS -->
+    <div class="dash-section" id="section-videos">
+      <h1 class="section-title">Video Manager</h1>
+      <p style="color:var(--text-mid); margin-bottom:2rem;">Add and manage YouTube speech videos for the public site.</p>
+      
+      <div class="card" style="max-width:600px;">
+        <h3>Add New Video</h3>
+        <div style="display:flex; flex-direction:column; gap:1.2rem;">
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">YouTube URL</label>
+            <input type="url" id="vUrl" placeholder="https://www.youtube.com/watch?v=..." />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Video Title</label>
+              <input type="text" id="vTitle" placeholder="The Art of Storytelling" />
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Speaker Name</label>
+              <input type="text" id="vSpeaker" placeholder="Member Name" />
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Category</label>
+            <select id="vCategory" style="padding:0.9rem 1.2rem; border-radius:12px;">
+              <option value="speech">🎤 Speech</option>
+              <option value="debate">⚖️ Debate</option>
+              <option value="humor">😂 Humorous</option>
+              <option value="workshop">📚 Workshop</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="addVideo()" style="padding:1.1rem; border-radius:12px; margin-top:0.5rem;">Upload to Public Site →</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Current Videos</h3>
+        <div id="videoList" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1.5rem;">
+          <p style="color:#999; padding:2rem; text-align:center;">Loading videos...</p>
         </div>
       </div>
     </div>
 
+    <!-- SECTION: NOTIFICATIONS -->
+    <div class="dash-section" id="section-notifications">
+      <h1 class="section-title">Global Notifications</h1>
+      <p style="color:var(--text-mid); margin-bottom:2rem;">Send push-style alerts to all club members' dashboards.</p>
+      
+      <div class="card" style="max-width:600px;">
+        <h3>New Broadcast</h3>
+        <div style="display:flex; flex-direction:column; gap:1.2rem;">
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Alert Title</label>
+            <input type="text" id="nTitle" placeholder="Tomorrow's Meet Venue Changed!" />
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Message Body</label>
+            <textarea id="nBody" rows="4" placeholder="Brief details about the update..."></textarea>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:0.5rem;">
+            <label style="font-weight:800; font-size:0.75rem; color:#999; text-transform:uppercase;">Action Link (Optional)</label>
+            <input type="url" id="nUrl" placeholder="https://..." />
+          </div>
+          <button class="btn-primary" onclick="window.sendNotification()" style="padding:1.1rem; border-radius:12px; margin-top:0.5rem; background:#2196F3; box-shadow:0 4px 15px rgba(33,150,243,0.25);">Broadcast to All Members →</button>
+        </div>
+      </div>
+    </div>
+    </div>
   </main>
 </div>
 
@@ -299,14 +539,14 @@
 <div class="modal" id="editModal">
   <div class="modal-content">
     <span style="position:absolute; top:2rem; right:2rem; cursor:pointer; color:#ccc; font-size:1.5rem;" onclick="closeModal()">✕</span>
-    <h2 style="font-family:'Playfair Display', serif; margin-top:0;">Update Profile</h2>
+    <h2 style="font-family:serif; margin-top:0;">Update Profile</h2>
     <p id="editUserName" style="color:var(--admin-accent); font-weight:800; font-size:1.2rem; margin-top:0.5rem;"></p>
     
     <input type="hidden" id="editUid" />
     
     <div style="display:flex; flex-direction:column; gap:1.8rem; margin-top:2.5rem;">
       <div style="display:flex; flex-direction:column; gap:0.6rem;">
-        <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">Current Pathway Shorthand</label>
+        <label style="font-weight:800; font-size:0.7rem; color:#aaa; text-transform:uppercase;">Current Guidance material Shorthand</label>
         <input type="text" id="editPathway" placeholder="e.g. L2P4" />
       </div>
       
@@ -334,35 +574,52 @@
 </div>
 
 <script type="module">
-import { auth, db } from '../js/firebase-config.js';
+import { auth, db, storage } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, getDocs, collection, query, orderBy, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, getDocs, collection, query, orderBy, setDoc, updateDoc, addDoc, arrayUnion, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 let allUsers = [];
 let bulkAttendees = [];
 let charts = {};
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) { window.location.href = 'admin-login.html'; return; }
+  if (!user) { window.location.href = 'login.html'; return; }
   const snap = await getDoc(doc(db, 'users', user.uid));
   if (!snap.exists() || snap.data().role !== 'admin') {
-    await signOut(auth); window.location.href = 'admin-login.html'; return;
+    await signOut(auth); window.location.href = 'login.html'; return;
   }
   document.getElementById('adminName').textContent = snap.data().name;
   loadAllData();
-  loadCurrentEvent();
+  loadGallery();
+  loadEvents(); // loadEvents now calls loadMeetRoles internally after caching
 });
 
-window.doLogout = async () => { await signOut(auth); window.location.href = 'admin-login.html'; };
+window.doLogout = async () => { await signOut(auth); window.location.href = 'login.html'; };
+
+window.toggleSidebar = () => {
+  document.querySelector('.sidebar').classList.toggle('open');
+};
+
+// Close sidebar on navigation in mobile
+const navLinks = document.querySelectorAll('.dash-nav-item');
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 1024) {
+      document.querySelector('.sidebar').classList.remove('open');
+    }
+  });
+});
 
 async function loadAllData() {
   const snap = await getDocs(query(collection(db, 'users'), orderBy('name', 'asc')));
   allUsers = [];
   snap.forEach(d => { allUsers.push({ id: d.id, ...d.data() }); });
   renderUserTable();
-  renderLeaderboard();
   updateInsights();
   populateMentorDropdown();
+  renderAttendanceChecklist();
+  renderRoleDropdowns();
 }
 
 // Stats & Insights
@@ -372,33 +629,6 @@ function updateInsights() {
   const totalPresent = allUsers.reduce((acc, u) => acc + (u.attendance?.filter(a=>a.present).length || 0), 0);
   const totalMeets = allUsers.reduce((acc, u) => acc + (u.attendance?.length || 0), 0);
   document.getElementById('insightAvgAtt').textContent = totalMeets ? Math.round(totalPresent/totalMeets*100) + '%' : '0%';
-  renderCharts();
-}
-
-function renderCharts() {
-  if(charts.growth) charts.growth.destroy();
-  if(charts.status) charts.status.destroy();
-  const pathData = { L1:0, L2:0, L3:0 };
-  allUsers.forEach(u => {
-    const lvl = (u.pathway || 'L1').substring(0,2);
-    if(pathData[lvl] !== undefined) pathData[lvl]++;
-  });
-  charts.growth = new Chart(document.getElementById('growthChart'), {
-    type:'bar',
-    data:{
-      labels:['Level 1','Level 2','Level 3'],
-      datasets:[{label:'Members', data:[pathData.L1, pathData.L2, pathData.L3], backgroundColor:['#FF5722','#FF9800','#FFC107'], borderRadius:8}]
-    },
-    options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{display:false}, ticks:{stepSize:1}}, x:{grid:{display:false}}}}
-  });
-  charts.status = new Chart(document.getElementById('statusChart'), {
-    type:'doughnut',
-    data:{
-      labels:['Foundational','Intermediate','Advanced'],
-      datasets:[{data:[pathData.L1, pathData.L2, pathData.L3], backgroundColor:['#f0f2f5','#FF9800','#FF5722'], borderWidth:0}]
-    },
-    options:{ cutout:'80%', plugins:{legend:{position:'bottom', labels:{usePointStyle:true, padding:20}}}}
-  });
 }
 
 // User Table
@@ -427,95 +657,239 @@ function renderUserTable() {
 }
 
 // Attendance Logic
-window.handleAttFile = (input) => {
-  const file = input.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, {type: 'array'});
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, {header: 1});
-    bulkAttendees = rows.flat().map(v => String(v).toLowerCase().trim()).filter(v => v.length > 2);
-    document.getElementById('attCount').textContent = bulkAttendees.length;
-    document.getElementById('attPreviewList').innerHTML = bulkAttendees.map(a => `<span style="background:#fff; border:1px solid #ddd; padding:6px 14px; border-radius:100px; font-size:0.75rem; font-weight:700; color:#555;">${a}</span>`).join('');
-    document.getElementById('attPreview').style.display = 'block';
-    document.getElementById('dropzoneText').innerHTML = `<i class="fa-solid fa-circle-check" style="font-size:2rem; color:#25D366; margin-bottom:0.5rem; display:block;"></i> <strong>${file.name} loaded</strong>`;
-  };
-  reader.readAsArrayBuffer(file);
+window.setAllAttendance = (val) => {
+  document.querySelectorAll('#attList input[type="checkbox"]').forEach(c => c.checked = val);
 };
 
-window.submitBulkAttendance = async () => {
-  const date = document.getElementById('attDate').value;
-  if(!date) { alert('Select meeting date.'); return; }
+window.filterAttList = () => {
+  const q = document.getElementById('attSearch').value.toLowerCase();
+  document.querySelectorAll('#attList label').forEach(l => {
+    l.style.display = l.textContent.toLowerCase().includes(q) ? 'flex' : 'none';
+  });
+};
+
+function renderAttendanceChecklist() {
+  const list = document.getElementById('attList');
+  if(!allUsers.length) { list.innerHTML = '<p style="padding:2rem; text-align:center; color:#999;">No members found.</p>'; return; }
+  list.innerHTML = allUsers.map(u => `
+    <label style="display:flex; align-items:center; gap:1rem; padding:1rem 1.5rem; border-bottom:1px solid #f0f0f0; cursor:pointer; transition:0.2s;">
+      <input type="checkbox" id="chk-${u.id}" value="${u.id}" style="width:20px; height:20px; accent-color:var(--admin-accent);" />
+      <div>
+        <div style="font-weight:700; color:#333;">${u.name}</div>
+        <div style="font-size:0.75rem; color:#999; font-weight:700; text-transform:uppercase;">${u.email}</div>
+      </div>
+    </label>
+  `).join('');
+}
+
+window.submitAttendanceChecklist = async () => {
+  const eventId = document.getElementById('attEventSelect').value;
+  if(!eventId) { alert('Select meeting event.'); return; }
+  
+  const eventData = allEventsCache.find(e => e.id === eventId);
+  const dateStr = eventData && eventData.date ? (eventData.date.toDate ? eventData.date.toDate().toLocaleDateString('en-IN') : new Date(eventData.date).toLocaleDateString('en-IN')) : 'Unknown Date';
+
   const btn = event.target;
-  btn.disabled = true; btn.textContent = 'Processing Batch...';
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Saving Records...';
+  
   let pCount = 0;
-  for (const user of allUsers) {
-    const isPresent = bulkAttendees.some(ba => 
-      user.name.toLowerCase().includes(ba) || user.email.toLowerCase().includes(ba) || (user.roll && user.roll.toLowerCase().includes(ba))
-    );
-    if(isPresent) pCount++;
-    try { await updateDoc(doc(db, 'users', user.id), { attendance: arrayUnion({ date, present: isPresent }) }); } catch(e) {}
+  let attendedUids = [];
+  
+  try {
+    for (const user of allUsers) {
+      const isPresent = document.getElementById('chk-' + user.id).checked;
+      if(isPresent) {
+         pCount++;
+         attendedUids.push(user.id);
+      }
+      // Update individual user historic attendance format
+      await updateDoc(doc(db, 'users', user.id), { 
+        attendance: arrayUnion({ date: dateStr, present: isPresent }) 
+      });
+    }
+    
+    // Also save the attendance array directly into the Event document for the matrix
+    await updateDoc(doc(db, 'events', eventId), {
+      attended: attendedUids
+    });
+
+    alert(`Success! ${pCount} members marked present for ${eventData ? eventData.title : 'the event'}.`);
+    // Reset checks
+    document.querySelectorAll('#attList input[type="checkbox"]').forEach(c => c.checked = false);
+  } catch(e) {
+    alert('Error saving attendance: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = originalText;
+    loadAllData();
+    loadEvents();
   }
-  alert(`Finished! ${pCount} Present, ${allUsers.length - pCount} Absent.`);
-  btn.disabled = false; btn.textContent = 'Commit Attendance for Entire Batch →';
-  document.getElementById('attPreview').style.display = 'none';
-  loadAllData();
 };
 
 // Event Manager Logic
-async function loadCurrentEvent() {
-  const snap = await getDoc(doc(db, 'config', 'next_event'));
-  if(snap.exists()) {
-    const d = snap.data();
-    document.getElementById('evTitle').value = d.title || '';
-    document.getElementById('evDate').value = d.date || '';
-    document.getElementById('evLink').value = d.link || '';
-    document.getElementById('evDesc').value = d.description || '';
+window.toggleAddEventForm = (show = null) => {
+  const form = document.getElementById('eventFormCard');
+  const btn = document.getElementById('toggleEventBtn');
+  const isNowVisible = show !== null ? show : form.style.display === 'none';
+  
+  form.style.display = isNowVisible ? 'block' : 'none';
+  btn.textContent = isNowVisible ? '✕ Close Form' : '+ Add New Event';
+  btn.style.background = isNowVisible ? '#f0f0f0' : '';
+  btn.style.color = isNowVisible ? '#666' : '';
+  
+  if(!isNowVisible) {
+    // Reset form
+    document.getElementById('editEventId').value = '';
+    document.getElementById('evTitle').value = '';
+    document.getElementById('evDate').value = '';
+    document.getElementById('evDesc').value = '';
+    document.getElementById('eventFormTitle').textContent = 'Add New Event';
+  }
+};
+
+let allEventsCache = [];
+
+async function loadEvents() {
+  const tbody = document.getElementById('adminEventsTableBody');
+  const roleEventSelect = document.getElementById('roleEventSelect');
+  try {
+    const q = query(collection(db, 'events'), orderBy('date', 'desc'));
+    const snap = await getDocs(q);
+    tbody.innerHTML = '';
+    
+    allEventsCache = [];
+    let optionsHtml = '<option value="">-- Choose an Event --</option>';
+
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="3" style="padding:3rem; text-align:center; color:#999;">No events created yet.</td></tr>';
+      roleEventSelect.innerHTML = optionsHtml;
+      document.getElementById('attEventSelect').innerHTML = optionsHtml;
+      loadMeetRoles();
+      return;
+    }
+    
+    snap.forEach(d => {
+      const e = d.data();
+      const id = d.id;
+      allEventsCache.push({ id, ...e });
+      
+      const isActive = e.isActive === true;
+      const isUpcoming = e.type === 'upcoming';
+      
+      // Friendly date for the table
+      let displayDate = '—';
+      if (e.date) {
+        const dObj = e.date.toDate ? e.date.toDate() : new Date(e.date);
+        displayDate = dObj.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+      }
+      
+      optionsHtml += `<option value="${id}">${e.title} (${displayDate})</option>`;
+      
+      tbody.innerHTML += `
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:1.5rem 2rem;">
+            <div style="font-weight:700; color:#333; font-size:1.05rem;">${e.title}</div>
+            <div style="font-size:0.8rem; color:#999; margin-top:2px;">${displayDate}</div>
+          </td>
+          <td style="padding:1.5rem 1.2rem;">
+            <span class="badge ${isActive ? 'badge-live' : (isUpcoming ? 'badge-upcoming' : 'badge-past')}" style="padding:0.4rem 0.8rem; border-radius:100px; font-size:0.75rem;">
+              ${isActive ? '⚡ LIVE' : (isUpcoming ? '🗓️ UPCOMING' : '✓ PAST')}
+            </span>
+          </td>
+          <td style="padding:1.5rem 2rem; text-align:right;">
+            <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+              <button class="btn-ghost" onclick="editEvent('${d.id}')" style="padding:0.5rem 0.8rem; font-size:0.75rem; border:1px solid #ddd; border-radius:8px;">Edit</button>
+              <button class="btn-ghost" onclick="toggleEventActive('${d.id}', ${!isActive})" style="padding:0.5rem 1rem; font-size:0.75rem; border:1px solid ${isActive?'#ccc':'var(--admin-accent)'}; color:${isActive?'#888':'var(--admin-accent)'}; border-radius:8px;">
+                ${isActive ? 'Deactivate' : 'Go Live'}
+              </button>
+              <button class="btn-ghost" onclick="deleteEvent('${d.id}')" style="padding:0.5rem 0.8rem; font-size:0.75rem; border:1px solid #ffebed; color:#e53935; border-radius:8px;">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    
+    // Setup role selections & matrix
+    roleEventSelect.innerHTML = optionsHtml;
+    document.getElementById('attEventSelect').innerHTML = optionsHtml;
+    loadMeetRoles();
+    renderUpcomingRoles();
+    
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="3" style="padding:3rem; text-align:center; color:#f44336;">Failed to load events.</td></tr>';
   }
 }
 
+window.editEvent = async (id) => {
+  try {
+    const snap = await getDoc(doc(db, 'events', id));
+    if(!snap.exists()) return;
+    const e = snap.data();
+    document.getElementById('editEventId').value = id;
+    document.getElementById('evTitle').value = e.title || '';
+    
+    // Format date for the <input type="date"> (YYYY-MM-DD)
+    if (e.date) {
+      const dObj = e.date.toDate ? e.date.toDate() : new Date(e.date);
+      const yyyy = dObj.getFullYear();
+      const mm = String(dObj.getMonth() + 1).padStart(2, '0');
+      const dd = String(dObj.getDate()).padStart(2, '0');
+      document.getElementById('evDate').value = `${yyyy}-${mm}-${dd}`;
+    } else {
+      document.getElementById('evDate').value = '';
+    }
+    
+    document.getElementById('evDesc').value = e.description || '';
+    document.getElementById('evType').value = e.type || 'upcoming';
+    document.getElementById('eventFormTitle').textContent = 'Edit Event Details';
+    toggleAddEventForm(true);
+  } catch(e) { alert(e.message); }
+};
+
 window.saveEvent = async () => {
-  const title = document.getElementById('evTitle').value;
-  const date = document.getElementById('evDate').value;
-  const link = document.getElementById('evLink').value;
-  const description = document.getElementById('evDesc').value;
+  const id = document.getElementById('editEventId').value;
+  const title = document.getElementById('evTitle').value.trim();
+  const date = document.getElementById('evDate').value.trim();
+  const description = document.getElementById('evDesc').value.trim();
+  const type = document.getElementById('evType').value;
+  
+  if(!title || !date) { alert('Title and Date are required.'); return; }
+  
   const btn = document.getElementById('saveEventBtn');
   btn.textContent = 'Saving...'; btn.disabled = true;
+  
   try {
-    await setDoc(doc(db, 'config', 'next_event'), { title, date, link, description, updated: serverTimestamp() });
-    alert('Public event updated successfully!');
-  } catch(e) { alert('Error: ' + e.message); } finally { btn.textContent = 'Update Website Event →'; btn.disabled = false; }
+    // Convert string from input to Date object for proper Firestore storage
+    const dateObj = new Date(date);
+    const data = { title, date: dateObj, description, type, updated: serverTimestamp() };
+    if (id) {
+      await updateDoc(doc(db, 'events', id), data);
+    } else {
+      await addDoc(collection(db, 'events'), { ...data, isActive: false, created: serverTimestamp() });
+    }
+    alert(id ? 'Event updated!' : 'New event added!');
+    toggleAddEventForm(false);
+    loadEvents();
+  } catch(e) { alert('Error: ' + e.message); } finally { btn.textContent = 'Save Event →'; btn.disabled = false; }
 };
 
-// Leaderboard
-async function renderLeaderboard() {
-  const tbody = document.getElementById('adminLeaderboardBody');
-  const snap = await getDocs(query(collection(db, 'leaderboard'), orderBy('points', 'desc')));
-  tbody.innerHTML = '';
-  let rank = 1;
-  snap.forEach(d => {
-    const m = d.data();
-    tbody.innerHTML += `
-      <tr>
-        <td style="padding-left:2rem;"><strong>#${rank++}</strong></td>
-        <td><div style="font-weight:700;">${m.name}</div></td>
-        <td><input type="number" value="${m.points || 0}" id="pts-${d.id}" onchange="updateRawScore('${d.id}')" style="width:85px; font-weight:900; text-align:center; padding:0.5rem; background:#fff; border: 1px solid var(--border); border-radius: 8px;"></td>
-        <td style="padding-right:2rem; text-align:right;"><span style="font-weight:700; color:#888;">${m.level || 'L1'}</span></td>
-      </tr>
-    `;
-  });
-}
-
-window.updateRawScore = async (uid) => {
-  const pts = parseInt(document.getElementById('pts-'+uid).value);
+window.toggleEventActive = async (id, active) => {
   try {
-    await updateDoc(doc(db, 'leaderboard', uid), { points: pts });
-    await updateDoc(doc(db, 'users', uid), { points: pts });
-    alert('Score updated');
-  } catch(e) {}
+    await updateDoc(doc(db, 'events', id), { isActive: active });
+    loadEvents();
+  } catch(e) { alert(e.message); }
 };
+
+window.deleteEvent = async (id) => {
+  if(!confirm('Delete this event?')) return;
+  try {
+    const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+    await deleteDoc(doc(db, 'events', id));
+    loadEvents();
+  } catch(e) { alert(e.message); }
+};
+
+
 
 // Modals & Switching
 window.openEditModal = (uid) => {
@@ -539,11 +913,128 @@ window.saveUserChanges = async () => {
   const role = document.getElementById('editRole').value;
   const mentor = document.getElementById('editMentor').value;
   const points = parseInt(document.getElementById('editPoints').value) || 0;
+  
+  if(!uid) return;
+  
   try {
-    await updateDoc(doc(db, 'users', uid), { pathway, role, mentor, points });
-    await updateDoc(doc(db, 'leaderboard', uid), { points, level: (pathway || 'L1').substring(0,2) });
-    alert('Updated!'); closeModal(); loadAllData();
-  } catch(e) {}
+    // 1. Update primary user doc
+    await updateDoc(doc(db, 'users', uid), { 
+      pathway: pathway || 'L1P1', 
+      role: role || 'user', 
+      mentor: mentor || '', 
+      points 
+    });
+    
+    alert('Profile updated successfully!');
+    closeModal();
+    loadAllData();
+  } catch(e) {
+    console.error('Update failed:', e);
+    alert('Failed to update profile: ' + e.message);
+  }
+};
+
+// Gallery Logic
+window.previewGalleryImage = (input) => {
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('galFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('galPreview').src = e.target.result;
+    document.getElementById('galPreviewWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+};
+
+window.uploadToGallery = async () => {
+  const fileInput = document.getElementById('galFile');
+  const caption = document.getElementById('galCaption').value.trim();
+  const visibility = document.getElementById('galVisibility').value;
+  const btn = document.getElementById('uploadGalBtn');
+  
+  if(!fileInput.files[0]) { alert('Select an image.'); return; }
+  
+  const file = fileInput.files[0];
+  const fileName = Date.now() + '_' + file.name;
+  const storageRef = ref(storage, 'gallery/' + fileName);
+  const uploadTask = uploadBytesResumable(storageRef, file);
+
+  btn.disabled = true;
+  document.getElementById('galUploadProgress').style.display = 'block';
+
+  uploadTask.on('state_changed', 
+    (snapshot) => {
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      document.getElementById('galProgressBar').style.width = progress + '%';
+    }, 
+    (error) => { alert('Upload failed: ' + error.message); btn.disabled = false; }, 
+    async () => {
+      const url = await getDownloadURL(uploadTask.snapshot.ref);
+      await addDoc(collection(db, 'gallery'), {
+        url,
+        caption,
+        visibility,
+        fileName, // store to delete from storage later
+        date: serverTimestamp(),
+        uploadedBy: auth.currentUser.uid
+      });
+      
+      alert('Photo uploaded successfully!');
+      btn.disabled = false;
+      document.getElementById('galUploadProgress').style.display = 'none';
+      document.getElementById('galProgressBar').style.width = '0%';
+      document.getElementById('galPreviewWrap').style.display = 'none';
+      document.getElementById('galFile').value = '';
+      document.getElementById('galCaption').value = '';
+      document.getElementById('galFileName').textContent = 'Choose or Drop Image';
+      loadGallery();
+    }
+  );
+};
+
+async function loadGallery() {
+  const container = document.getElementById('galList');
+  try {
+    const q = query(collection(db, 'gallery'), orderBy('date', 'desc'));
+    const snap = await getDocs(q);
+    container.innerHTML = '';
+    if (snap.empty) {
+      container.innerHTML = '<div style="color:var(--text-mid); grid-column:1/-1; text-align:center; padding:3rem;">No photos in gallery yet.</div>';
+      return;
+    }
+    snap.forEach(doc => {
+      const p = doc.data();
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#fff; border:1px solid var(--border); border-radius:15px; overflow:hidden; position:relative;';
+      card.innerHTML = `
+        <img src="${p.url}" style="width:100%; aspect-ratio:1; object-fit:cover; display:block;" />
+        <div style="padding:0.75rem;">
+          <div style="font-weight:700; font-size:0.85rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.caption || 'No Caption'}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+            <span class="badge ${p.visibility==='public'?'badge-admin':'badge-user'}" style="font-size:0.6rem;">${p.visibility.toUpperCase()}</span>
+            <button onclick="deletePhoto('${doc.id}', '${p.fileName}')" style="background:none; border:none; color:#ff4444; cursor:pointer; font-size:0.9rem;"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch(e) {
+    container.innerHTML = '<div style="color:red; grid-column:1/-1; text-align:center; padding:3rem;">Error loading gallery.</div>';
+  }
+}
+
+window.deletePhoto = async (id, fileName) => {
+  if(!confirm('Are you sure you want to delete this photo?')) return;
+  try {
+    if(fileName) {
+      const storageRef = ref(storage, 'gallery/' + fileName);
+      await deleteObject(storageRef).catch(e => console.warn('Storage delete failed:', e));
+    }
+    await deleteDoc(doc(db, 'gallery', id));
+    alert('Photo deleted.');
+    loadGallery();
+  } catch(e) { alert('Delete failed: ' + e.message); }
 };
 
 window.showSection = (id) => {
@@ -558,6 +1049,398 @@ window.filterUsers = () => {
   document.querySelectorAll('#userTableBody tr').forEach(r => {
     r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
   });
+};
+
+/* --- ROLE ASSIGNMENTS LOGIC --- */
+const ROLE_KEYS = [
+  { id: 'hom1', label: 'HOM 1' },
+  { id: 'hom2', label: 'HOM 2' },
+  { id: 'ttm', label: 'TTM' },
+  { id: 'tte', label: 'TTE' },
+  { id: 'ge', label: 'GE' },
+  { id: 'timer', label: 'Timer' },
+  { id: 'momTaker', label: 'MOM Taker' },
+  { id: 'momPres', label: 'MOM Presenter' }
+];
+
+function renderRoleDropdowns() {
+  const container = document.getElementById('rolesSelectorsContainer');
+  let userOptions = '<option value="">-- Unassigned --</option>';
+  allUsers.forEach(u => { userOptions += `<option value="${u.id}">${u.name}</option>`; });
+  
+  let html = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1.5rem; margin-bottom:2rem; padding-bottom:2rem; border-bottom:1px dashed #ddd;">`;
+  
+  ROLE_KEYS.forEach(role => {
+    html += `
+      <div style="display:flex; flex-direction:column; gap:0.4rem;">
+        <label style="font-weight:800; font-size:0.75rem; color:var(--admin-accent);">${role.label}</label>
+        <select id="role_${role.id}" class="role-select" data-key="${role.id}" style="padding:0.6rem; font-size:0.85rem;">
+          ${userOptions}
+        </select>
+      </div>
+    `;
+  });
+  html += `</div>`;
+
+  // Multiple repeating roles
+  const buildRepeater = (title, prefix, count, color) => {
+    let block = `<div style="margin-bottom:2rem;"><h4 style="margin-top:0; margin-bottom:1rem; color:${color}; font-weight:800; font-size:0.9rem;">${title}</h4><div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:1rem;">`;
+    for(let i=1; i<=count; i++) {
+        block += `
+          <div style="display:flex; flex-direction:column; gap:0.4rem;">
+            <label style="font-weight:700; font-size:0.7rem; color:#666;">#${i}</label>
+            <select id="role_${prefix}${i}" class="role-select" data-key="${prefix}${i}" style="padding:0.5rem; font-size:0.8rem;">${userOptions}</select>
+          </div>
+        `;
+    }
+    block += `</div></div>`;
+    return block;
+  };
+
+  html += buildRepeater('Prepared Speakers', 'speaker', 7, '#FF5722');
+  html += buildRepeater('Evaluators', 'evaluator', 7, '#2196F3');
+  html += buildRepeater('Table Topics Speakers', 'tt', 7, '#9C27B0');
+
+  container.innerHTML = html;
+}
+
+window.loadRolesForSelectedEvent = () => {
+  const id = document.getElementById('roleEventSelect').value;
+  const selects = document.querySelectorAll('.role-select');
+  selects.forEach(s => s.value = ''); // Reset selects
+
+  if (!id) return;
+  
+  const event = allEventsCache.find(e => e.id === id);
+  if (event && event.roles) {
+    Object.keys(event.roles).forEach(key => {
+      const select = document.getElementById('role_'+key);
+      if(select) select.value = event.roles[key];
+    });
+  }
+};
+
+window.saveMeetRoles = async () => {
+  const eventId = document.getElementById('roleEventSelect').value;
+  if(!eventId) { alert('Please select an event first.'); return; }
+  
+  const event = allEventsCache.find(e => e.id === eventId);
+  if(!event) return;
+  
+  const btn = document.getElementById('saveRolesBtn');
+  btn.innerText = 'Saving...'; btn.disabled = true;
+
+  try {
+    const rolesData = {};
+    const rolesDisplay = []; // For easy display on public homepage
+    const selects = document.querySelectorAll('.role-select');
+    const userUpdates = {}; 
+    
+    selects.forEach(sel => {
+      const val = sel.value;
+      if (val) {
+        const roleKey = sel.getAttribute('data-key');
+        let dictLabel = "";
+        let specificLabel = "";
+        
+        let foundStandard = ROLE_KEYS.find(rk => rk.id === roleKey);
+        if (foundStandard) { dictLabel = foundStandard.label; specificLabel = foundStandard.label; }
+        else if(roleKey.startsWith('speaker')) { dictLabel = 'Speaker'; specificLabel = 'Speaker ' + roleKey.replace('speaker',''); }
+        else if(roleKey.startsWith('evaluator')) { dictLabel = 'Evaluator'; specificLabel = 'Evaluator ' + roleKey.replace('evaluator',''); }
+        else if(roleKey.startsWith('tt')) { dictLabel = 'Table Topic Speaker'; specificLabel = 'TT Speaker ' + roleKey.replace('tt',''); }
+
+        rolesData[roleKey] = val; 
+        
+        // Find User name for display
+        const userObj = allUsers.find(u => u.id === val);
+        const userName = userObj ? userObj.name : 'Unknown Member';
+        rolesDisplay.push({ role: specificLabel, name: userName });
+        
+        if(!userUpdates[val]) userUpdates[val] = [];
+        userUpdates[val].push(`${dictLabel} M-${event.title}`); 
+      }
+    });
+
+    // 1. Update the Event Document
+    await updateDoc(doc(db, 'events', eventId), { roles: rolesData, rolesDisplay: rolesDisplay });
+    for (const [uid, assignedRoles] of Object.entries(userUpdates)) {
+       for (const finalRoleString of assignedRoles) {
+         await updateDoc(doc(db, 'users', uid), {
+           roleBadges: arrayUnion(finalRoleString) 
+         });
+       }
+    }
+
+    alert('Role Assignments Saved Successfully!');
+    loadEvents(); // Re-fetch events so cache updates, and matrix refreshes
+    
+  } catch(e) {
+    alert('Error saving roles: ' + e.message);
+  } finally {
+    btn.innerText = 'Save Role Assignments →'; btn.disabled = false;
+  }
+};
+
+let rolesDataList = [];
+const ROLE_HEADERS = ['Member Name', '# HOM', 'Speaker', 'Evaluator', '# TTM', '# TTE', '# GE', 'Timer', 'Table Topic', 'Attendance', 'MOM Taker', 'Total Activity Points', 'Total No of Roles'];
+
+function loadMeetRoles() {
+  const headerHtml = ROLE_HEADERS.map(h => `<th style="padding:1rem; border:1px solid rgba(255,255,255,0.2); white-space:nowrap; color:#ffffff !important; font-weight:800; ${h === 'Member Name' ? 'text-align:left;' : 'writing-mode: vertical-lr; text-orientation: mixed; transform: rotate(180deg); height:140px;'}">${h}</th>`).join('');
+  document.getElementById('roleTableHeader').innerHTML = headerHtml;
+
+  const tbody = document.getElementById('roleTableBody');
+  rolesDataList = [];
+  tbody.innerHTML = '';
+  
+  if (allUsers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="${ROLE_HEADERS.length}" style="text-align:center; padding:3rem; color:#999;">No members available.</td></tr>`;
+    return;
+  }
+
+  const sortedUsers = [...allUsers].sort((a,b) => a.name.localeCompare(b.name));
+
+  sortedUsers.forEach(u => {
+      let counts = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, attendance:0, mom:0 };
+      
+      allEventsCache.forEach(e => {
+         const rolesMap = e.roles || {};
+         // Check roles
+         for(const [rKey, uidVal] of Object.entries(rolesMap)) {
+            if (uidVal === u.id) {
+               if(rKey.startsWith('hom')) counts.hom++;
+               else if(rKey.startsWith('speaker')) counts.speaker++;
+               else if(rKey.startsWith('evaluator')) counts.evaluator++;
+               else if(rKey === 'ttm') counts.ttm++;
+               else if(rKey === 'tte') counts.tte++;
+               else if(rKey === 'ge') counts.ge++;
+               else if(rKey === 'timer') counts.timer++;
+               else if(rKey.startsWith('tt') && rKey !== 'ttm' && rKey !== 'tte') counts.tt++;
+               else if(rKey === 'momTaker' || rKey === 'momPres') counts.mom++; 
+            }
+         }
+         // Check attendance
+         if (e.attended && e.attended.includes(u.id)) {
+            counts.attendance++;
+         }
+      });
+      
+      const totalRoles = counts.hom + counts.speaker + counts.evaluator + counts.ttm + counts.tte + counts.ge + counts.timer + counts.tt + counts.mom;
+      const totalPoints = (counts.hom * 10) + (counts.speaker * 7) + (counts.ttm * 5) + (counts.evaluator * 3) + (counts.tte * 3) + (counts.ge * 5) + (counts.timer * 3) + (counts.tt * 2) + (counts.attendance * 1) + (counts.mom * 4);
+      
+      const f = (val) => val === 0 ? '' : val;
+
+      const rowData = {
+          name: u.name,
+          hom: f(counts.hom),
+          speaker: f(counts.speaker),
+          evaluator: f(counts.evaluator),
+          ttm: f(counts.ttm),
+          tte: f(counts.tte),
+          ge: f(counts.ge),
+          timer: f(counts.timer),
+          tt: f(counts.tt),
+          attendance: f(counts.attendance),
+          mom: f(counts.mom),
+          points: f(totalPoints),
+          totalRoles: f(totalRoles)
+      };
+      
+      rolesDataList.push(rowData);
+      
+      let trHtml = `
+      <tr style="border-bottom:1px solid #eee;">
+        <td style="padding:1rem; border-right:1px solid #eee; font-weight:800; min-width:150px;">${rowData.name}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.hom}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.speaker}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.evaluator}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.ttm}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.tte}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.ge}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.timer}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center; background:rgba(255,235,59,0.1);">${rowData.tt}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center; background:rgba(156,39,176,0.1); font-weight:700;">${rowData.attendance}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center;">${rowData.mom}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center; font-weight:800; color:#FF5722; background:rgba(255,152,0,0.1);">${rowData.points}</td>
+        <td style="padding:0.75rem; border-right:1px solid #eee; text-align:center; font-weight:800; color:#2196F3; background:rgba(33,150,243,0.1);">${rowData.totalRoles}</td>
+      </tr>`;
+      tbody.innerHTML += trHtml;
+  });
+}
+
+window.exportRolesCSV = () => {
+    if(!rolesDataList || rolesDataList.length === 0) {
+      alert("No data to export!"); return;
+    }
+    
+    let csvContent = ROLE_HEADERS.join(",") + "\n";
+    
+    rolesDataList.forEach(r => {
+        let row = [
+            `"${r.name}"`, r.hom, r.speaker, r.evaluator, r.ttm, r.tte, r.ge, r.timer, r.tt, r.attendance, r.mom, r.points, r.totalRoles
+        ];
+        csvContent += row.join(",") + "\n";
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Unscripted_Leaderboard_Matrix.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
+function renderUpcomingRoles() {
+  const container = document.getElementById('upcomingRolesContainer');
+  if (!allEventsCache || allEventsCache.length === 0) {
+    container.innerHTML = '<p style="padding:2rem; text-align:center; color:#999;">No events found in the database.</p>';
+    return;
+  }
+
+  // Find upcoming event: either the active one OR the most recent 'upcoming' type
+  let upcoming = allEventsCache.find(e => e.isActive === true);
+  if (!upcoming) {
+    const now = new Date();
+    upcoming = allEventsCache
+      .filter(e => e.type === 'upcoming')
+      .sort((a,b) => (a.date?.toDate?.() || new Date(a.date)) - (b.date?.toDate?.() || new Date(b.date)))[0];
+  }
+
+  if (!upcoming || !upcoming.rolesDisplay || upcoming.rolesDisplay.length === 0) {
+    container.innerHTML = `<p style="padding:2rem; text-align:center; color:#999;">No roles assigned for the next meet (${upcoming ? upcoming.title : 'None scheduled'}) yet.</p>`;
+    return;
+  }
+
+  const dateStr = upcoming.date?.toDate ? upcoming.date.toDate().toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : new Date(upcoming.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+  
+  let html = `
+    <div style="margin-bottom:1.5rem; padding: 1.25rem; background: #fff3ef; border-radius: 15px; border: 1px solid rgba(255,87,34,0.1); display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h4 style="margin:0; color:var(--admin-accent); font-size:1.1rem;">${upcoming.title}</h4>
+        <p style="margin:0.25rem 0 0; font-size:0.8rem; color:#888; font-weight:700; text-transform:uppercase;">${dateStr} • UPCOMING ROSTER</p>
+      </div>
+      <div style="font-size:1.5rem; opacity:0.3;">🎤</div>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
+  `;
+
+  upcoming.rolesDisplay.forEach(rd => {
+    html += `
+      <div style="padding:1.1rem; background:#fff; border-radius:16px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+        <span style="font-weight:800; font-size:0.7rem; color:#999; text-transform:uppercase; letter-spacing:0.05em;">${rd.role}</span>
+        <span style="font-weight:700; color:#333; font-size:0.95rem;">${rd.name}</span>
+      </div>
+    `;
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+window.resetAllAttendance = async function() {
+  if (!confirm("⚠️ CRITICAL ACTION ⚠️\n\nThis will permanently delete ALL attendance records for ALL members across all past events. This cannot be undone.\n\nAre you sure?")) return;
+  if (!confirm("🛑 SECOND CONFIRMATION 🛑\n\nPlease be absolutely sure. Global reset now?")) return;
+
+  const btn = event.target;
+  const originalText = btn.innerText;
+  btn.innerText = "Processing Reset...";
+  btn.disabled = true;
+
+  try {
+    // 1. Reset 'attendance' array in all users
+    const userSnap = await getDocs(collection(db, 'users'));
+    const userUpdatePromises = userSnap.docs.map(d => updateDoc(doc(db, 'users', d.id), { attendance: [] }));
+    
+    // 2. Reset 'attended' array in all events
+    const eventSnap = await getDocs(collection(db, 'events'));
+    const eventUpdatePromises = eventSnap.docs.map(d => updateDoc(doc(db, 'events', d.id), { attended: [] }));
+
+    await Promise.all([...userUpdatePromises, ...eventUpdatePromises]);
+    
+    alert("✓ SUCCESS: All attendance records have been reset for all members.");
+    location.reload(); 
+  } catch(e) {
+    alert("Error resetting attendance: " + e.message);
+    btn.innerText = originalText;
+    btn.disabled = false;
+  }
+};
+
+// ── VIDEOS MANAGER ─────────────────────────
+window.loadVideos = async function() {
+  const list = document.getElementById('videoList');
+  if(!list) return;
+  try {
+    const snap = await getDocs(query(collection(db,'videos'), orderBy('date','desc')));
+    let html = '';
+    snap.forEach(d => {
+      const v = d.data();
+      html += `
+        <div style="padding:1.25rem; background:#fff; border-radius:16px; border:1px solid #eee; display:flex; flex-direction:column; gap:0.75rem; position:relative;">
+          <div style="font-weight:800; color:#333;">${v.title}</div>
+          <div style="font-size:0.75rem; color:#999; text-transform:uppercase; font-weight:700;">${v.category} • ${v.speaker}</div>
+          <a href="${v.url}" target="_blank" style="color:var(--admin-accent); font-size:0.8rem; text-decoration:none; font-weight:700;">View on YouTube ↗</a>
+          <button onclick="deleteVideo('${d.id}')" style="position:absolute; top:1rem; right:1rem; border:none; background:none; cursor:pointer; color:#ff5252; font-size:1.1rem;"><i class="fa-solid fa-trash-can"></i></button>
+        </div>`;
+    });
+    list.innerHTML = html || '<p style="color:#999; padding:2rem; text-align:center; grid-column:1/-1;">No videos found.</p>';
+  } catch(e) { list.innerHTML = 'Error loading videos.'; }
+};
+
+window.addVideo = async function() {
+  const url = document.getElementById('vUrl').value.trim();
+  const title = document.getElementById('vTitle').value.trim();
+  const speaker = document.getElementById('vSpeaker').value.trim();
+  const category = document.getElementById('vCategory').value;
+  if (!url || !title) return alert('Fill title and URL.');
+  try {
+    await addDoc(collection(db,'videos'), { url, title, speaker, category, date: serverTimestamp() });
+    alert('✓ Video added!');
+    document.getElementById('vUrl').value=''; document.getElementById('vTitle').value='';
+    loadVideos();
+  } catch(e) { alert(e.message); }
+};
+
+window.deleteVideo = async function(id) {
+  if(!confirm('Delete this video?')) return;
+  try {
+    await deleteDoc(doc(db,'videos',id));
+    loadVideos();
+  } catch(e) { alert(e.message); }
+};
+
+// ── NOTIFICATIONS ──────────────────────────
+window.sendNotification = async function() {
+  const title = document.getElementById('nTitle').value.trim();
+  const body = document.getElementById('nBody').value.trim();
+  const url = document.getElementById('nUrl').value.trim();
+  if(!title || !body) return alert('Fill title and body.');
+  try {
+    await addDoc(collection(db,'notifications'), { title, body, url, sent: false, created: serverTimestamp() });
+    alert('✓ Notification broadcasted to all members!');
+    document.getElementById('nTitle').value=''; document.getElementById('nBody').value=''; document.getElementById('nUrl').value='';
+  } catch(e) { alert(e.message); }
+};
+
+// Extended showSection
+const baseShowSection = window.showSection;
+window.showSection = function(id) {
+  if (id === 'videos') loadVideos();
+  
+  // Custom logic if baseShowSection is missing or needs extension
+  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('section-' + id);
+  if(target) target.classList.add('active');
+  
+  document.querySelectorAll('.dash-nav-item').forEach(i => i.classList.remove('active'));
+  const navItem = Array.from(document.querySelectorAll('.dash-nav-item')).find(el => el.getAttribute('onclick')?.includes(`'${id}'`));
+  if(navItem) navItem.classList.add('active');
+  
+  // Close sidebar on mobile
+  if(window.innerWidth <= 1024) {
+    document.querySelector('.sidebar')?.classList.remove('active');
+  }
 };
 </script>
 </body>

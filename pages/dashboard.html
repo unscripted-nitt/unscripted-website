@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — Unscripted NITT</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  <title>Dashboard Unscripted NITT</title>
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="icon" href="../icons/logo.png" type="image/png" />
+  <link rel="icon" href="../icons/favicon.png" type="image/png" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
@@ -14,7 +13,7 @@
 <!-- TOP NAV -->
 <div class="dash-top-nav">
   <a href="../index.html" class="nav-logo" style="gap:0.5rem;">
-    <img src="../icons/logo.png" alt="Unscripted" style="height:36px;width:auto;" />
+    <img src="../icons/logo.png" alt="Unscripted" style="height:120px;width:auto;z-index:101;" />
   </a>
   <div style="display:flex;align-items:center;gap:1rem;">
     <span id="topNavName" style="color:rgba(255,255,255,0.6);font-size:0.88rem;"></span>
@@ -31,26 +30,60 @@
       <a class="dash-nav-item" onclick="showSection('progress')"><span class="dash-nav-icon">📊</span> My Progress</a>
       <a class="dash-nav-item" onclick="showSection('analysis')"><span class="dash-nav-icon">📈</span> Analysis</a>
       <a class="dash-nav-item" onclick="showSection('achievements')"><span class="dash-nav-icon">🎖️</span> Achievements</a>
-      <div class="sidebar-label">Club</div>
       <a class="dash-nav-item" onclick="showSection('leaderboard')"><span class="dash-nav-icon">🏆</span> Leaderboard</a>
+      <div class="sidebar-label">Club</div>
       <a class="dash-nav-item" onclick="showSection('mentorship')"><span class="dash-nav-icon">🤝</span> Mentor / Mentee</a>
       <a class="dash-nav-item" onclick="showSection('attendance')"><span class="dash-nav-icon">📅</span> Attendance</a>
+      <a class="dash-nav-item" onclick="showSection('gallery')"><span class="dash-nav-icon">📸</span> Gallery</a>
       <div class="sidebar-label">Public</div>
       <a class="dash-nav-item" href="../index.html#events"><span class="dash-nav-icon">🗓️</span> Events</a>
-      <a class="dash-nav-item" href="../index.html#gallery"><span class="dash-nav-icon">📸</span> Gallery</a>
       <a class="dash-nav-item" href="../index.html#contact"><span class="dash-nav-icon">✉️</span> Contact</a>
       <a class="dash-nav-item" href="members.html"><span class="dash-nav-icon">👥</span> Members</a>
       <a class="dash-nav-item" href="videos.html"><span class="dash-nav-icon">🎤</span> Speeches</a>
+      
+      <div id="adminPortalLink" style="display:none;">
+        <div class="sidebar-label" style="margin-top:2rem;">Management</div>
+        <a class="dash-nav-item" href="admin-dashboard.html" style="color:var(--orange);"><span class="dash-nav-icon">🛡️</span> Admin Portal</a>
+      </div>
     </nav>
   </aside>
 
   <!-- MAIN CONTENT -->
   <main class="main-content">
 
+    <!-- ACTIVE MEET BANNER -->
+    <div id="activeMeetBanner" style="display:none; margin-bottom:2rem; animation: slideDown 0.5s ease;">
+      <div class="card" style="background:var(--dark); color:white; border-left:4px solid var(--orange); display:flex; align-items:center; justify-content:space-between; padding:1.5rem 2rem;">
+        <div style="display:flex; align-items:center; gap:1.5rem;">
+          <div class="live-indicator">LIVE</div>
+          <div>
+            <h3 style="margin:0; font-family:var(--font-display); font-size:1.4rem;" id="activeMeetTitle">Weekly Meet #24</h3>
+            <p style="margin:0; opacity:0.7; font-size:0.88rem;" id="activeMeetLocation">Starting now @ ESB 104</p>
+          </div>
+        </div>
+        <button class="btn-primary" style="padding:0.6rem 1.5rem; font-size:0.85rem;" onclick="showSection('attendance')">Mark Presence →</button>
+      </div>
+    </div>
+
+    <style>
+    @keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+    .live-indicator {
+      background: #ff3d00;
+      color: white;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 900;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink { 0% { opacity:1; } 50% { opacity:0.5; } 100% { opacity:1; } }
+    </style>
+
     <!-- PROGRESS -->
     <div class="dash-section active" id="section-progress">
       <h2 class="section-title">My Progress</h2>
-      <p class="section-sub">Your speech pathway journey at a glance</p>
+      <p class="section-sub">Your speech Guidance material journey at a glance</p>
       <div class="stats-cards" id="progressStats">
         <div class="stat-card"><div class="big-num" id="statSpeeches">—</div><div class="stat-name">Speeches Completed</div></div>
         <div class="stat-card"><div class="big-num" id="statLevel">—</div><div class="stat-name">Last Project</div></div>
@@ -58,7 +91,7 @@
       </div>
       <div class="card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.75rem;">
-          <h3 style="margin:0;" id="pathwayTitle">Pathway Progress</h3>
+          <h3 style="margin:0;" id="pathwayTitle">Guidance material Progress</h3>
           <span id="pathwayBadge" style="background:var(--orange);color:white;padding:0.3rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:700;">Loading...</span>
         </div>
         <div class="progress-bar-wrap">
@@ -69,6 +102,14 @@
           <span id="progressTotal">of ? total</span>
         </div>
         <div class="pathway-steps" id="pathwaySteps" style="margin-top:1.5rem;"></div>
+      </div>
+      <div class="card" id="upcomingRolesCard" style="display:none; border:1px solid rgba(255,87,34,0.1); background:linear-gradient(to bottom right, #ffffff, #fffdfb);">
+        <h3 style="margin-top:0; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+          Upcoming Meet Roles <span class="live-badge" style="font-size:0.6rem; animation:none; background:#eee; color:#666;">ROSTER</span>
+        </h3>
+        <div id="upcomingRolesContainer">
+          <p style="color:var(--mid); font-size:0.9rem;">Loading roster...</p>
+        </div>
       </div>
     </div>
 
@@ -97,30 +138,35 @@
     <div class="dash-section" id="section-achievements">
       <h2 class="section-title">Achievements</h2>
       <p class="section-sub">Badges you've earned on your Unscripted journey</p>
-      <div class="card">
+      
+      <div class="card" style="margin-bottom:1.5rem;">
+        <h3 style="margin-top:0;">Journey Milestones</h3>
         <div class="badges-grid" id="badgesGrid"><p style="color:var(--mid);">Loading achievements...</p></div>
+      </div>
+      
+      <div class="card">
+        <h3 style="margin-top:0;">Club Role Records</h3>
+        <div class="badges-grid" id="rolesGrid"><p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p></div>
       </div>
     </div>
 
     <!-- LEADERBOARD -->
     <div class="dash-section" id="section-leaderboard">
-      <h2 class="section-title">Leaderboard</h2>
-      <p class="section-sub">Top speakers this semester</p>
-      <div class="card">
-        <table class="leaderboard-table">
-          <thead>
-            <tr>
-              <th>Rank</th><th>Member</th><th>Pathway</th><th>Speeches</th><th>Points</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboardBody">
-            <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mid);">Loading...</td></tr>
-          </tbody>
-        </table>
+      <h2 class="section-title">Club Leaderboard</h2>
+      <p class="section-sub">Historical role involvement and aggregated activity points</p>
+      <div class="card" style="padding:0;">
+        <div class="scroll-container" style="padding:1.5rem 1.5rem 2.5rem 1.5rem;">
+          <table style="width:100%; border-collapse:collapse; min-width: 1500px; white-space:nowrap; border:1px solid #eee; font-size: 0.85rem;" id="leaderboardTable">
+            <thead>
+              <tr style="background:#5c7aff; color:white; font-weight:800;" id="leaderboardTableHeader">
+              </tr>
+            </thead>
+            <tbody id="leaderboardTableBody">
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-
-    <!-- MENTORSHIP -->
+    </div>    <!-- MENTORSHIP -->
     <div class="dash-section" id="section-mentorship">
       <h2 class="section-title">Mentor &amp; Mentee</h2>
       <p class="section-sub">Your personal support network</p>
@@ -148,21 +194,109 @@
       </div>
     </div>
 
+    <!-- GALLERY -->
+    <div class="dash-section" id="section-gallery">
+      <h2 class="section-title">Club Gallery</h2>
+      <p class="section-sub">Moments worth remembering (includes member-only photos)</p>
+      
+      <!-- Admin Upload Card -->
+      <div id="adminGalleryUpload" class="card" style="display:none; border:2px dashed var(--orange); background:rgba(255,87,34,0.02);">
+        <h3 style="margin-bottom:1rem;">📤 Admin: Add Photo</h3>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1rem;">
+          <div class="form-group"><label>Photo URL</label><input type="url" id="dg-url" placeholder="https://..." /></div>
+          <div class="form-group"><label>Caption</label><input type="text" id="dg-caption" placeholder="Eg. Monthly Meet - March" /></div>
+          <div class="form-group">
+            <label>Visibility</label>
+            <select id="dg-visibility" style="width:100%; padding:0.9rem 1.2rem; border:2px solid #e8e0d8; border-radius:var(--radius-sm); background:var(--cream); font-family:var(--font-body);">
+              <option value="members">Members Only 🔒</option>
+              <option value="public">Public (Everyone) 🌍</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="dashAddPhoto()" style="margin-top:1rem; border-radius:100px;">Post to Gallery →</button>
+        <div id="dg-msg" style="margin-top:0.5rem; font-size:0.85rem;"></div>
+      </div>
+
+      <div class="card">
+        <div class="gallery-mosaic" id="dashGallery">
+          <div class="gallery-placeholder">📸 Loading moments...</div>
+        </div>
+      </div>
+    </div>
+
   </main>
 </div>
 
+<!-- SPEECH DETAILS MODAL -->
+<div id="speechModal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+  <div class="card" style="max-width:600px; width:90%; position:relative; animation: modalIn 0.3s ease-out;">
+    <button onclick="closeModal()" style="position:absolute; top:1.5rem; right:1.5rem; background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--mid);">&times;</button>
+    <div id="modalContent">
+      <h2 id="modalTitle" style="font-family:var(--font-display); color:var(--dark); margin-bottom:0.5rem;">Speech Title</h2>
+      <p id="modalLvl" style="color:var(--orange); font-weight:700; font-size:0.9rem; text-transform:uppercase; margin-bottom:1.5rem;">Level 1 Project 1</p>
+      <div id="modalDescriptionWrap" style="margin-bottom:1.5rem;">
+        <h4 style="margin-bottom:0.5rem; color:var(--dark);">Context / Description</h4>
+        <p id="modalDescription" style="font-size:0.95rem; line-height:1.6; color:#444;">No description available.</p>
+      </div>
+
+      <div id="modalPurposeWrap" style="margin-bottom:1.5rem; display:none;">
+        <h4 style="margin-bottom:0.5rem; color:var(--dark);">Purpose Statement</h4>
+        <p id="modalPurpose" style="font-size:0.95rem; line-height:1.6; color:#444; border-left:3px solid var(--orange); padding-left:1rem; font-style:italic;"></p>
+      </div>
+
+      <div id="modalObjectivesWrap" style="margin-bottom:1.5rem; display:none;">
+        <h4 style="margin-bottom:0.5rem; color:var(--dark);">Objectives</h4>
+        <p id="modalObjectives" style="font-size:0.95rem; line-height:1.6; color:#444;"></p>
+      </div>
+
+      <div id="modalFilesWrap" style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border);">
+        <h4 style="margin-bottom:1rem; color:var(--dark);">Resources & Guides</h4>
+        <div id="modalFiles" style="display:flex; flex-wrap:wrap; gap:0.75rem;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.modal-overlay {
+  display: none; /* Changed from flex !important to none */
+}
+.file-badge {
+  background: rgba(255,87,34,0.1);
+  color: var(--orange);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.file-badge:hover {
+  background: var(--orange);
+  color: white;
+}
+</style>
+
 <!-- MOBILE BOTTOM NAV -->
-<div class="mobile-dash-nav" style="display:flex;" id="mobileNav">
+<div class="mobile-dash-nav" id="mobileNav">
   <div class="mob-nav-item active" onclick="showSection('progress')"><span class="mob-nav-icon">📊</span>Progress</div>
-  <div class="mob-nav-item" onclick="showSection('leaderboard')"><span class="mob-nav-icon">🏆</span>Board</div>
+  <div class="mob-nav-item" onclick="showSection('leaderboard')"><span class="mob-nav-icon">🏆</span>Leaderbd</div>
   <div class="mob-nav-item" onclick="showSection('attendance')"><span class="mob-nav-icon">📅</span>Attend</div>
+  <div class="mob-nav-item" onclick="showSection('gallery')"><span class="mob-nav-icon">📸</span>Gallery</div>
   <div class="mob-nav-item" onclick="showSection('mentorship')"><span class="mob-nav-icon">🤝</span>Mentor</div>
 </div>
 
 <script type="module">
 import { auth, db } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { doc, getDoc, collection, getDocs, query, orderBy, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 let currentUser = null;
 let userData = null;
@@ -179,6 +313,10 @@ onAuthStateChanged(auth, async (user) => {
       return; 
     }
     userData = snap.data();
+    if (['admin', 'core'].includes(userData.role)) {
+      document.getElementById('adminGalleryUpload').style.display = 'block';
+      document.getElementById('adminPortalLink').style.display = 'block';
+    }
     renderDashboard(userData);
   } catch(e) {
     console.error('Core data load failed:', e);
@@ -205,8 +343,216 @@ function renderDashboard(data) {
   renderPathway(data);
   renderAttendance(data.attendance||[]);
   renderAchievements(data);
-  loadLeaderboard();
   loadMentorship(data);
+  loadActiveMeet();
+  loadGallery();
+  loadUpcomingRoles();
+  loadLeaderboard();
+}
+
+async function loadUpcomingRoles() {
+  const container = document.getElementById('upcomingRolesContainer');
+  const card = document.getElementById('upcomingRolesCard');
+  if (!container || !card) return;
+
+  try {
+    const q = query(collection(db, 'events'), orderBy('date', 'desc'));
+    const snap = await getDocs(q);
+    const events = [];
+    snap.forEach(d => events.push({ id: d.id, ...d.data() }));
+
+    let upcoming = events.find(e => e.isActive === true);
+    if (!upcoming) {
+      upcoming = events
+        .filter(e => e.type === 'upcoming')
+        .sort((a,b) => (a.date?.toDate?.() || new Date(a.date)) - (b.date?.toDate?.() || new Date(b.date)))[0];
+    }
+
+    if (upcoming && upcoming.rolesDisplay && upcoming.rolesDisplay.length > 0) {
+      card.style.display = 'block';
+      let html = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.8rem;">`;
+      upcoming.rolesDisplay.forEach(rd => {
+        html += `
+          <div style="padding:0.8rem 1rem; background:#f9f9f9; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:800; font-size:0.65rem; color:#999; text-transform:uppercase;">${rd.role}</span>
+            <span style="font-weight:700; color:var(--dark); font-size:0.85rem;">${rd.name}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      container.innerHTML = html;
+    } else {
+      card.style.display = 'none';
+    }
+  } catch (e) {
+    console.warn("Failed to load upcoming roles:", e);
+  }
+}
+
+async function loadLeaderboard() {
+  try {
+    const qUsers = query(collection(db, 'users'));
+    const snapUsers = await getDocs(qUsers);
+    const allUsers = [];
+    snapUsers.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
+
+    const qEvents = query(collection(db, 'events'));
+    const snapEvents = await getDocs(qEvents);
+    const allEventsCache = [];
+    snapEvents.forEach(d => allEventsCache.push({ id: d.id, ...d.data() }));
+
+    const ROLE_HEADERS = ['Member Name', '# HOM', 'Speaker', 'Evaluator', '# TTM', '# TTE', '# GE', 'Timer', 'Table Topic', 'Attendance', 'MOM Taker', 'Total Activity Points', 'Total No of Roles'];
+    
+    const headerHtml = ROLE_HEADERS.map(h => `<th style="padding:1rem; border:1px solid rgba(255,255,255,0.2); white-space:nowrap; color:#ffffff !important; font-weight:800; ${h === 'Member Name' ? 'text-align:left;' : 'writing-mode: vertical-lr; text-orientation: mixed; transform: rotate(180deg); height:140px;'}">${h}</th>`).join('');
+    document.getElementById('leaderboardTableHeader').innerHTML = headerHtml;
+
+    const tbody = document.getElementById('leaderboardTableBody');
+    if (allUsers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="${ROLE_HEADERS.length}" style="text-align:center; padding:3rem; color:#999;">No members available.</td></tr>`;
+      return;
+    }
+
+    const sortedUsers = [...allUsers].sort((a,b) => (a.name || '').localeCompare(b.name || ''));
+
+    let html = '';
+    sortedUsers.forEach(u => {
+        let counts = { hom:0, speaker:0, evaluator:0, ttm:0, tte:0, ge:0, timer:0, tt:0, attendance:0, mom:0 };
+        
+        allEventsCache.forEach(e => {
+           const rolesMap = e.roles || {};
+           for(const [rKey, uidVal] of Object.entries(rolesMap)) {
+              if (uidVal === u.id) {
+                 if(rKey.startsWith('hom')) counts.hom++;
+                 else if(rKey.startsWith('speaker')) counts.speaker++;
+                 else if(rKey.startsWith('evaluator')) counts.evaluator++;
+                 else if(rKey === 'ttm') counts.ttm++;
+                 else if(rKey === 'tte') counts.tte++;
+                 else if(rKey === 'ge') counts.ge++;
+                 else if(rKey === 'timer') counts.timer++;
+                 else if(rKey.startsWith('tt') && rKey !== 'ttm' && rKey !== 'tte') counts.tt++;
+                 else if(rKey === 'momTaker' || rKey === 'momPres') counts.mom++; 
+              }
+           }
+           if (e.attended && e.attended.includes(u.id)) {
+              counts.attendance++;
+           }
+        });
+        
+        const totalRoles = counts.hom + counts.speaker + counts.evaluator + counts.ttm + counts.tte + counts.ge + counts.timer + counts.tt + counts.mom;
+        const totalPoints = (counts.hom * 10) + (counts.speaker * 7) + (counts.ttm * 5) + (counts.evaluator * 3) + (counts.tte * 3) + (counts.ge * 5) + (counts.timer * 3) + (counts.tt * 2) + (counts.attendance * 1) + (counts.mom * 4);
+        
+        const f = (val) => val === 0 ? '' : val;
+
+        html += `
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:1rem; font-weight:800; position:sticky; left:0; background:white; z-index:10; border-right:1px solid #eee;">${u.name}</td>
+            <td style="text-align:center;">${f(counts.hom)}</td>
+            <td style="text-align:center;">${f(counts.speaker)}</td>
+            <td style="text-align:center;">${f(counts.evaluator)}</td>
+            <td style="text-align:center;">${f(counts.ttm)}</td>
+            <td style="text-align:center;">${f(counts.tte)}</td>
+            <td style="text-align:center;">${f(counts.ge)}</td>
+            <td style="text-align:center;">${f(counts.timer)}</td>
+            <td style="text-align:center; background:#fffdf1;">${f(counts.tt)}</td>
+            <td style="text-align:center; background:#fbf5ff; font-weight:700;">${f(counts.attendance)}</td>
+            <td style="text-align:center;">${f(counts.mom)}</td>
+            <td style="text-align:center; background:#fff6ee; font-weight:900; color:#e65100;">${f(totalPoints)}</td>
+            <td style="text-align:center; background:#f0f8ff; font-weight:800; color:#0d47a1;">${f(totalRoles)}</td>
+          </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+  } catch(e) {
+    console.warn("Failed to load leaderboard:", e);
+  }
+}
+
+async function loadGallery() {
+  const container = document.getElementById('dashGallery');
+  if (!container) return;
+  try {
+    const q = query(collection(db, 'gallery'), orderBy('date', 'desc'));
+    const snap = await getDocs(q);
+    container.innerHTML = '';
+    if (snap.empty) {
+      container.innerHTML = '<div class="gallery-placeholder">📸 No photos yet. Members like you can help fill it!</div>';
+      return;
+    }
+    snap.forEach(doc => {
+      const p = doc.data();
+      const div = document.createElement('div');
+      div.style.position = 'relative';
+      const img = document.createElement('img');
+      img.src = p.url;
+      img.alt = p.caption || 'Unscripted moment';
+      img.loading = 'lazy';
+      img.style.width = '100%';
+      img.style.height = '200px';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = '12px';
+      img.style.cursor = 'pointer';
+      img.onclick = () => window.open(p.url, '_blank');
+      
+      if (p.visibility === 'members') {
+        const badge = document.createElement('span');
+        badge.innerHTML = '🔒 Members Only';
+        badge.style.position = 'absolute';
+        badge.style.top = '10px';
+        badge.style.right = '10px';
+        badge.style.background = 'rgba(0,0,0,0.6)';
+        badge.style.color = 'white';
+        badge.style.padding = '0.2rem 0.5rem';
+        badge.style.borderRadius = '4px';
+        badge.style.fontSize = '0.7rem';
+        div.appendChild(badge);
+      }
+      
+      div.appendChild(img);
+      container.appendChild(div);
+    });
+  } catch(e) {
+    console.warn('Gallery load error:', e);
+    container.innerHTML = '<div class="gallery-placeholder">📸 Gallery temporarily unavailable.</div>';
+  }
+}
+
+window.dashAddPhoto = async function() {
+  const url = document.getElementById('dg-url').value.trim();
+  const caption = document.getElementById('dg-caption').value.trim();
+  const visibility = document.getElementById('dg-visibility').value;
+  const msg = document.getElementById('dg-msg');
+  if (!url) { msg.style.color='red'; msg.textContent='URL is required.'; return; }
+  msg.style.color='var(--mid)'; msg.textContent='Uploading...';
+  try {
+    await addDoc(collection(db, 'gallery'), { 
+      url, 
+      caption, 
+      visibility, 
+      date: serverTimestamp(), 
+      uploadedBy: currentUser.uid 
+    });
+    msg.style.color='green'; msg.textContent='✓ Photo added to gallery!';
+    document.getElementById('dg-url').value = '';
+    document.getElementById('dg-caption').value = '';
+    loadGallery();
+  } catch(e) { msg.style.color='red'; msg.textContent='Error: ' + e.message; }
+};
+
+async function loadActiveMeet() {
+  const banner = document.getElementById('activeMeetBanner');
+  if (!banner) return;
+  try {
+    const q = query(collection(db, 'meets'), where('isActive', '==', true), limit(1));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const meet = snap.docs[0].data();
+      document.getElementById('activeMeetTitle').textContent = meet.theme || 'Ongoing Meet';
+      document.getElementById('activeMeetLocation').textContent = (meet.location || 'Happening Now') + (meet.description ? ` : ${meet.description}` : '');
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  } catch(e) { console.warn('Active meet check failed:', e); }
 }
 
 let PATHWAY_DATA = {};
@@ -295,8 +641,8 @@ async function renderPathway(data) {
       <h3 style="color:var(--orange)">Unlock Level 3 🎓</h3>
       <p style="margin-bottom:1rem;">Select your official specialization to track progress:</p>
       <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
-        <button onclick="setL3Choice('K')" class="dash-btn" style="flex:1; min-width:160px;">🎙️ Keynote</button>
-        <button onclick="setL3Choice('H')" class="dash-btn" style="flex:1; min-width:160px; background:#333;">😂 Humorous</button>
+        <button onclick="setL3Choice('K')" class="dash-btn" style="flex:1; min-width:160px; padding:0.8rem; border-radius:8px; border:none; background:var(--orange); color:white; font-weight:bold; cursor:pointer;">🎙️ 3a · Keynote</button>
+        <button onclick="setL3Choice('H')" class="dash-btn" style="flex:1; min-width:160px; padding:0.8rem; border-radius:8px; border:none; background:#333; color:white; font-weight:bold; cursor:pointer;">😂 3b · Humorous</button>
       </div>
     `;
     container.appendChild(choiceBox);
@@ -336,7 +682,11 @@ async function renderPathway(data) {
     lvlDiv.appendChild(header);
 
     const speeches = def.speeches || [];
-    speeches.forEach((name, i) => {
+    speeches.forEach((speechObj, i) => {
+      const speechName = (typeof speechObj === 'string') ? speechObj : speechObj.name;
+      const speechDesc = speechObj.description || speechObj.purpose || '';
+      const speechObjs = speechObj.objectives || '';
+      
       // Only count for progress if it's the chosen one (or L1/L2)
       const countsForProgress = !isLocked;
       if (countsForProgress) globalTotalCount++;
@@ -362,9 +712,12 @@ async function renderPathway(data) {
       const el = document.createElement('div');
       el.className = 'step-item ' + (status === 'done' ? 'done' : (status === 'active-step' ? 'active-step' : ''));
       el.style.marginBottom = '0.75rem';
+      el.style.cursor = 'pointer';
+      el.onclick = () => showSpeechDetails(speechObj, lvlKey, stepNum);
+      
       el.innerHTML = `<div class="step-num ${status === 'done' ? 'done' : (status === 'active-step' ? 'active-step' : 'pending')}">${status === 'done' ? '✓' : stepNum}</div>
         <div class="step-info">
-          <h4>${lvlKey}P${stepNum}: ${name}</h4>
+          <h4>${lvlKey}P${stepNum}: ${speechName}</h4>
           <p style="font-size:0.8rem;">${feedback}</p>
         </div>`;
       lvlDiv.appendChild(el);
@@ -384,7 +737,7 @@ async function renderPathway(data) {
   document.getElementById('progressTotal').textContent = 'of ' + globalTotalCount + ' total projects';
   const badge = document.getElementById('pathwayBadge');
   if (badge) {
-    badge.textContent = currentLevelNum === 3 ? (currentSubType==='K'?'Keynote':'Humorous') : 'Level '+currentLevelNum;
+    badge.textContent = currentLevelNum === 3 ? (currentSubType==='K'?'3a':'3b') : 'Level '+currentLevelNum;
     badge.style.background = 'var(--orange)';
   }
 }
@@ -403,7 +756,7 @@ function renderAttendance(attendance) {
     cell.className = 'att-cell '+(a.present?'att-present':'att-absent');
     const d = a.date ? new Date(a.date) : null;
     cell.innerHTML = `<span class="day-num">${d?d.getDate():'?'}</span><span>${d?d.toLocaleString('default',{month:'short'}):''}</span>`;
-    cell.title = (a.present?'✓ Present':'✗ Absent')+(d?' — '+d.toLocaleDateString():'');
+    cell.title = (a.present?'✓ Present':'✗ Absent')+(d?' : '+d.toLocaleDateString():'');
     cal.appendChild(cell);
   });
   if (!attendance.length) cal.innerHTML = '<p style="color:var(--mid);grid-column:1/-1;">No attendance records yet.</p>';
@@ -420,8 +773,8 @@ function renderAchievements(data) {
     {icon:'💯',name:'Perfect Month',desc:'100% attendance in a month',earned:false},
     {icon:'🤝',name:'Mentor',desc:'Guide a fellow member',earned:!!(data.mentees?.length)},
     {icon:'⭐',name:'Point Hunter',desc:'Earn 50+ points',earned:(data.points||0)>=50},
-    {icon:'🎙️',name:'Keynote Ready',desc:'Reach Level 3 Keynote',earned:data.pathway==='L3K'},
-    {icon:'😂',name:'Comedy King',desc:'Reach Level 3 Humorous',earned:data.pathway==='L3H'},
+    {icon:'🎙️',name:'Keynote Ready',desc:'Reach Level 3a',earned:data.pathway==='L3K'},
+    {icon:'😂',name:'Comedy King',desc:'Reach Level 3b',earned:data.pathway==='L3H'},
   ];
   const grid = document.getElementById('badgesGrid');
   grid.innerHTML = badges.map(b=>`
@@ -430,36 +783,31 @@ function renderAchievements(data) {
       <div class="badge-name">${b.name}</div>
       <div class="badge-desc">${b.desc}</div>
     </div>`).join('');
-}
-
-async function loadLeaderboard() {
-  const tbody = document.getElementById('leaderboardBody');
-  try {
-    const q = query(collection(db,'leaderboard'), orderBy('points','desc'));
-    const snap = await getDocs(q);
-    tbody.innerHTML = '';
-    let rank = 1;
-    snap.forEach(d => {
-      const m = d.data();
-      const initials = (m.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-      const isMe = d.id === currentUser?.uid;
-      const rankCls = rank<=3?'rank-'+rank:'rank-other';
-      const tr = document.createElement('tr');
-      if(isMe) tr.style.background = 'rgba(255,87,34,0.05)';
-      tr.innerHTML = `
-        <td><div class="rank-badge ${rankCls}">${rank}</div></td>
-        <td><div class="member-cell"><div class="member-avatar" style="background:${isMe?'var(--orange)':'#888'}">${initials}</div>${m.name}${isMe?' <span style="color:var(--orange);font-size:0.72rem;font-weight:700;">(you)</span>':''}</div></td>
-        <td>${m.level||'L1'}</td>
-        <td>${m.speeches||0}</td>
-        <td><strong>${m.points||0}</strong></td>`;
-      tbody.appendChild(tr);
-      rank++;
-    });
-    if(snap.empty) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mid);">No leaderboard data yet.</td></tr>';
-  } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--mid);">Could not load leaderboard.</td></tr>';
+    
+  const rolesGrid = document.getElementById('rolesGrid');
+  if (rolesGrid) {
+    const roles = data.roleBadges || [];
+    if (roles.length === 0) {
+      rolesGrid.innerHTML = '<p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p>';
+    } else {
+      // Reversing to show latest roles first, assuming they are appended sequentially
+      const reversedRoles = [...roles].reverse();
+      rolesGrid.innerHTML = reversedRoles.map(r => {
+        let parts = r.split(' M-');
+        let roleName = parts[0];
+        let meetNo = parts[1] ? ('Meet ' + parts[1]) : '';
+        return `
+        <div class="badge-item earned" style="border-color: #4CAF50; background: linear-gradient(135deg, #e8f5e9, white);">
+          <div class="badge-icon" style="font-size:2rem; margin-bottom:0.8rem;">🎭</div>
+          <div class="badge-name">${roleName}</div>
+          <div class="badge-desc" style="color:#2E7D32; font-weight:700;">${meetNo}</div>
+        </div>
+      `}).join('');
+    }
   }
 }
+
+
 
 async function loadMentorship(data) {
   const mentorDiv = document.getElementById('mentorInfo');
@@ -538,6 +886,60 @@ function renderCharts(data) {
       <div class="chart-bar-bg"><div class="chart-bar-fill" style="width:${s.value/5*100}%"></div></div>
     </div>`).join('');
 }
+
+window.showSpeechDetails = function(speech, lvlKey, stepNum) {
+  if (!speech) return;
+  const modal = document.getElementById('speechModal');
+  const name = (typeof speech === 'string') ? speech : (speech.name || `Project ${stepNum}`);
+  
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('modalLvl').textContent = `${lvlKey} : Project ${stepNum}`;
+  
+  // Description
+  const desc = (typeof speech === 'object' && speech.description) ? speech.description : (speech.purpose || 'No detailed description available for this project yet.');
+  document.getElementById('modalDescription').textContent = desc;
+
+  // Purpose
+  const purpWrap = document.getElementById('modalPurposeWrap');
+  if (typeof speech === 'object' && speech.purpose && speech.purpose !== speech.description) {
+    purpWrap.style.display = 'block';
+    document.getElementById('modalPurpose').textContent = speech.purpose;
+  } else {
+    purpWrap.style.display = 'none';
+  }
+
+  // Objectives
+  const objWrap = document.getElementById('modalObjectivesWrap');
+  if (typeof speech === 'object' && speech.objectives) {
+    objWrap.style.display = 'block';
+    document.getElementById('modalObjectives').textContent = speech.objectives;
+  } else {
+    objWrap.style.display = 'none';
+  }
+
+  // Files
+  const filesWrap = document.getElementById('modalFiles');
+  filesWrap.innerHTML = '';
+  if (typeof speech === 'object' && speech.files && speech.files.length > 0) {
+    speech.files.forEach(f => {
+      filesWrap.innerHTML += `<a href="#" class="file-badge" onclick="event.preventDefault(); alert('Resource: ${f}')">📄 ${f}</a>`;
+    });
+  } else {
+    filesWrap.innerHTML = '<p style="color:var(--mid); font-size:0.85rem;">No resource PDFs attached yet.</p>';
+  }
+
+  modal.style.display = 'flex';
+};
+
+window.closeModal = function() {
+  document.getElementById('speechModal').style.display = 'none';
+};
+
+// Close modal on background click
+window.onclick = function(event) {
+  const modal = document.getElementById('speechModal');
+  if (event.target == modal) closeModal();
+};
 </script>
 </body>
 </html>

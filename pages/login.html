@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Unscripted NITT</title>
+  <title>Login Unscripted NITT</title>
   <meta name="description" content="Member login for Unscripted NIT Trichy. Sign in with your NITT webmail." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="icon" href="../icons/favicon.png" type="image/png" />
 </head>
@@ -21,8 +20,12 @@
     <div class="login-logo">
       <img src="../icons/logo.png" alt="Unscripted NITT" />
     </div>
-    <h2>Welcome Back</h2>
-    <p>Sign in with your NIT Trichy webmail to access your member dashboard, pathway progress, and more.</p>
+    <div class="login-tabs" style="display:flex; gap:1rem; margin-bottom:2rem; border-bottom:1px solid #eee;">
+      <div class="login-tab active" id="tabMember" onclick="switchLogin('member')" style="padding:0.5rem 1rem; cursor:pointer; font-weight:800; color:var(--orange); border-bottom:3px solid var(--orange);">Member</div>
+      <div class="login-tab" id="tabAdmin" onclick="switchLogin('admin')" style="padding:0.5rem 1rem; cursor:pointer; font-weight:800; color:#999; border-bottom:3px solid transparent;">Admin</div>
+    </div>
+    <h2 id="loginTitle">Welcome Back</h2>
+    <p id="loginSub">Sign in with your NIT Trichy webmail to access your member dashboard, Guidance material progress, and more.</p>
 
     <div class="form-group">
       <label for="email">NITT Webmail</label>
@@ -33,14 +36,19 @@
       <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
     </div>
 
-    <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In →</button>
+    <button class="btn-primary login-btn" id="loginBtn" onclick="doLogin()">Log In to Dashboard →</button>
     <div class="error-msg" id="errorMsg"></div>
 
     <p class="login-hint">Trouble logging in? <a href="mailto:unscripted@nitt.edu">Contact us</a></p>
     <p class="login-hint" style="margin-top:0.5rem;"><a href="../index.html">← Back to home</a></p>
-    <p class="login-hint" style="margin-top:1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-      <a href="admin-login.html" style="color:var(--orange); font-weight:700;">Admin Portal Access →</a>
-    </p>
+
+    <!-- UPCOMING ROSTER -->
+    <div id="loginRoster" style="margin-top:2.5rem; padding-top:2rem; border-top:1px solid #eee; display:none;">
+      <h3 style="font-size:0.9rem; margin-bottom:1.2rem; display:flex; align-items:center; gap:0.5rem; color:var(--dark);">
+        Upcoming Meet Roster <span style="font-size:0.6rem; padding:0.2rem 0.6rem; background:#f0f0f0; border-radius:100px; color:#666;">LIVE</span>
+      </h3>
+      <div id="rosterList" style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem;"></div>
+    </div>
   </div>
 </div>
 
@@ -53,9 +61,52 @@ import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/fi
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const userDoc = await getDoc(doc(db, 'users', user.uid));
-    if (userDoc.exists()) window.location.href = 'dashboard.html';
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      const isAdmin = ['admin', 'core'].includes(data.role);
+      const wantAdmin = new URLSearchParams(window.location.search).get('type') === 'admin';
+      
+      if (isAdmin && wantAdmin) {
+        window.location.href = 'admin-dashboard.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    }
   }
 });
+
+// Check URL params
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('type') === 'admin') {
+  document.addEventListener('DOMContentLoaded', () => {
+    switchLogin('admin');
+  });
+}
+
+// Switch logic
+let currentMode = 'member';
+window.switchLogin = function(mode) {
+  currentMode = mode;
+  const tabM = document.getElementById('tabMember');
+  const tabA = document.getElementById('tabAdmin');
+  const title = document.getElementById('loginTitle');
+  const subtitle = document.getElementById('loginSub');
+  const btn = document.getElementById('loginBtn');
+  
+  if (mode === 'admin') {
+    tabA.style.color = 'var(--orange)'; tabA.style.borderColor = 'var(--orange)';
+    tabM.style.color = '#999'; tabM.style.borderColor = 'transparent';
+    title.textContent = 'Admin Portal Access';
+    subtitle.textContent = 'Authorized access only. Use your verified administrator credentials to manage club operations.';
+    btn.textContent = 'Enter Admin Portal →';
+  } else {
+    tabM.style.color = 'var(--orange)'; tabM.style.borderColor = 'var(--orange)';
+    tabA.style.color = '#999'; tabA.style.borderColor = 'transparent';
+    title.textContent = 'Welcome Back';
+    subtitle.textContent = 'Sign in with your NIT Trichy webmail to access your member dashboard, Guidance material progress, and more.';
+    btn.textContent = 'Log In to Dashboard →';
+  }
+};
 
 window.doLogin = async function() {
   const email = document.getElementById('email').value.trim();
@@ -79,8 +130,32 @@ window.doLogin = async function() {
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const userDoc = await getDoc(doc(db, 'users', cred.user.uid));
+    
     if (userDoc.exists()) {
-      window.location.href = 'dashboard.html';
+      const data = userDoc.data();
+      
+      // Strict role check for Admin Tab
+      if (currentMode === 'admin' && !['admin', 'core'].includes(data.role)) {
+        err.textContent = 'Access Denied: You do not have administrative privileges. Please use the Member login tab.';
+        err.style.display = 'block';
+        await auth.signOut();
+        btn.textContent = 'Enter Admin Portal →';
+        btn.disabled = false;
+        return;
+      }
+
+      if (data.isActive === false) {
+        err.textContent = 'This account has been deactivated. Please contact the core team.';
+        err.style.display = 'block';
+        await auth.signOut();
+      } else {
+        // Route based on Tab + Role
+        if (currentMode === 'admin') {
+          window.location.href = 'admin-dashboard.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      }
     } else {
       err.textContent = 'Account not registered in Unscripted. Contact a core member.';
       err.style.display = 'block';
@@ -102,6 +177,34 @@ window.doLogin = async function() {
   }
 };
 
+async function loadLoginRoster() {
+  const container = document.getElementById('rosterList');
+  const wrap = document.getElementById('loginRoster');
+  try {
+    const q = query(collection(db, 'events'), orderBy('date', 'desc'));
+    const snap = await getDocs(q);
+    const events = [];
+    snap.forEach(d => events.push(d.data()));
+
+    let upcoming = events.find(e => e.isActive === true);
+    if (!upcoming) {
+      upcoming = events
+        .filter(e => e.type === 'upcoming')
+        .sort((a,b) => (a.date?.toDate?.() || new Date(a.date)) - (b.date?.toDate?.() || new Date(b.date)))[0];
+    }
+
+    if (upcoming && upcoming.rolesDisplay && upcoming.rolesDisplay.length > 0) {
+      wrap.style.display = 'block';
+      container.innerHTML = upcoming.rolesDisplay.map(rd => `
+        <div style="padding:0.6rem; background:#f9f9f9; border-radius:10px; border:1px solid #f0f0f0;">
+          <div style="font-size:0.6rem; color:#999; font-weight:800; text-transform:uppercase;">${rd.role}</div>
+          <div style="font-size:0.8rem; font-weight:700; color:var(--dark);">${rd.name}</div>
+        </div>
+      `).join('');
+    }
+  } catch(e) { console.warn("Roster load failed", e); }
+}
+loadLoginRoster();
 
 // Enter key support
 document.addEventListener('keydown', e => {
