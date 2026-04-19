@@ -150,8 +150,13 @@
         <div class="badges-grid" id="badgesGrid"><p style="color:var(--mid);">Loading achievements...</p></div>
       </div>
       
+      <div class="card" id="myUpcomingRolesWrapper" style="display:none; margin-bottom:1.5rem; background:#fff3ef; border:1px solid rgba(255,87,34,0.1);">
+        <h3 style="margin-top:0; color:var(--orange);">My Upcoming Roles</h3>
+        <div class="badges-grid" id="myUpcomingRolesGrid"></div>
+      </div>
+      
       <div class="card">
-        <h3 style="margin-top:0;">Club Role Records</h3>
+        <h3 style="margin-top:0;">Past Club Role Records</h3>
         <div class="badges-grid" id="rolesGrid"><p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p></div>
       </div>
     </div>
@@ -404,11 +409,11 @@ function renderDashboard(data) {
   loadMentorship(data);
   loadActiveMeet();
   loadGallery();
-  loadUpcomingRoles();
+  loadUpcomingRoles(data);
   loadLeaderboard();
 }
 
-async function loadUpcomingRoles() {
+async function loadUpcomingRoles(userData) {
   const container = document.getElementById('upcomingRolesContainer');
   const card = document.getElementById('upcomingRolesCard');
   if (!container || !card) return;
@@ -426,14 +431,89 @@ async function loadUpcomingRoles() {
         .sort((a,b) => (a.date?.toDate?.() || new Date(a.date)) - (b.date?.toDate?.() || new Date(b.date)))[0];
     }
 
+    if (upcoming && userData) {
+      // 1. DERIVE MY UPCOMING ROLES FROM THE ACTUAL EVENT ROSTER (NOT HISTORY)
+      // This ensures it matches the "Upcoming Meet Roles" card exactly.
+      const myUid = userData.id;
+      const eventRoles = upcoming.roles || {};
+      const myAssignedRoles = [];
+
+      // Loop through the roster map to see which keys belong to the current user
+      for (const [roleKey, assignedUid] of Object.entries(eventRoles)) {
+        if (assignedUid === myUid) {
+          // Find the pretty name from rolesDisplay or common knowledge
+          const displayObj = upcoming.rolesDisplay?.find(rd => {
+            // Match role key to display string logic
+            return rd.role.toLowerCase().includes(roleKey.replace(/[0-9]/g, '').toLowerCase());
+          });
+          myAssignedRoles.push({
+            role: displayObj ? displayObj.role : roleKey.toUpperCase(),
+            meet: upcoming.title
+          });
+        }
+      }
+
+      // Render My Upcoming Roles
+      const myUpcomingRolesGrid = document.getElementById('myUpcomingRolesGrid');
+      const myUpcomingRolesWrapper = document.getElementById('myUpcomingRolesWrapper');
+      if (myUpcomingRolesGrid && myUpcomingRolesWrapper) {
+        if (myAssignedRoles.length > 0) {
+          myUpcomingRolesWrapper.style.display = 'block';
+          myUpcomingRolesGrid.innerHTML = myAssignedRoles.map(r => `
+            <div class="badge-item earned" style="border-color: #FF5722; background: linear-gradient(135deg, #fff3ef, white);">
+              <div class="badge-icon" style="font-size:2rem; margin-bottom:0.8rem;">🎭</div>
+              <div class="badge-name">${r.role}</div>
+              <div class="badge-desc" style="color:#d84315; font-weight:700;">Meet ${r.meet}</div>
+            </div>
+          `).join('');
+        } else {
+          myUpcomingRolesWrapper.style.display = 'none';
+        }
+      }
+
+      // 2. RENDER PAST ROLES (Exclude the upcoming meet's badges from here)
+      const rolesGrid = document.getElementById('rolesGrid');
+      if (rolesGrid) {
+        const allHistory = userData.roleBadges || [];
+        const pastRoles = allHistory.filter(r => !r.endsWith(' M-' + upcoming.title));
+        
+        if (pastRoles.length === 0) {
+          rolesGrid.innerHTML = '<p style="color:var(--mid);">Play a role in upcoming meets to earn badges!</p>';
+        } else {
+          const reversedRoles = [...pastRoles].reverse();
+          rolesGrid.innerHTML = reversedRoles.map(r => {
+            let parts = r.split(' M-');
+            return `
+            <div class="badge-item earned" style="border-color: #4CAF50; background: linear-gradient(135deg, #e8f5e9, white);">
+              <div class="badge-icon" style="font-size:2rem; margin-bottom:0.8rem;">🎭</div>
+              <div class="badge-name">${parts[0]}</div>
+              <div class="badge-desc" style="color:#2E7D32; font-weight:700;">${parts[1] ? 'Meet '+parts[1] : ''}</div>
+            </div>`;
+          }).join('');
+        }
+      }
+    }
+
     if (upcoming && upcoming.rolesDisplay && upcoming.rolesDisplay.length > 0) {
+
       card.style.display = 'block';
-      let html = `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:0.8rem;">`;
+      const dateStr = upcoming.date?.toDate ? upcoming.date.toDate().toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : new Date(upcoming.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+      
+      let html = `
+        <div style="margin-bottom:1.5rem; padding: 1.25rem; background: #fff3ef; border-radius: 15px; border: 1px solid rgba(255,87,34,0.1); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="margin:0; color:var(--orange); font-size:1.1rem; font-family:var(--font-display);">${upcoming.title}</h4>
+            <p style="margin:0.25rem 0 0; font-size:0.8rem; color:#888; font-weight:700; text-transform:uppercase;">${dateStr} • UPCOMING ROSTER</p>
+          </div>
+          <div style="font-size:1.5rem; opacity:0.3;">🎤</div>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:1rem;">
+      `;
       upcoming.rolesDisplay.forEach(rd => {
         html += `
-          <div style="padding:0.8rem 1rem; background:#f9f9f9; border-radius:12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:800; font-size:0.65rem; color:#999; text-transform:uppercase;">${rd.role}</span>
-            <span style="font-weight:700; color:var(--dark); font-size:0.85rem;">${rd.name}</span>
+          <div style="padding:1.1rem; background:#fff; border-radius:16px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center; transition:0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+            <span style="font-weight:800; font-size:0.7rem; color:#999; text-transform:uppercase; letter-spacing:0.05em;">${rd.role}</span>
+            <span style="font-weight:700; color:#333; font-size:0.95rem;">${rd.name}</span>
           </div>
         `;
       });
