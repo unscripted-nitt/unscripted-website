@@ -587,6 +587,17 @@
     </div>
     <button class="btn-primary" id="updatePassBtn" onclick="updateUserPassword()" style="width:100%;margin-top:0.5rem;">Update Password &rarr;</button>
     <div id="settingsFeedback" style="display:none;padding:0.85rem;border-radius:var(--radius-sm);margin-top:1rem;font-size:0.9rem;"></div>
+
+    <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+      <h4 style="margin:0 0 0.4rem;">Security</h4>
+      <p style="font-size:0.82rem;color:var(--text-light);margin:0 0 0.75rem;">
+        <i class="fa-solid fa-circle-info"></i>
+        If you signed in on a device you no longer control (shared computer, lost phone, etc.), use this to sign every device out at once — you'll need to log in again everywhere, including here.
+      </p>
+      <button class="btn-primary" id="logoutAllBtn" onclick="logOutAllDevices()" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);">
+        <i class="fa-solid fa-right-from-bracket"></i>&nbsp; Log Out From All Devices
+      </button>
+    </div>
   </div>
 </div>
 
@@ -627,7 +638,7 @@ body.has-warning .sidebar nav { padding-bottom: 12rem; }
 </style>
   
 <script type="module">
-import { auth, db } from '../js/firebase-config.js';
+import { auth, db, functions, httpsCallable } from '../js/firebase-config.js';
 import { onAuthStateChanged, signOut, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   doc, getDoc, getDocs, collection, collectionGroup, query, orderBy, where,
@@ -736,6 +747,23 @@ if (userData.isActive === false) {
 });
 
 window.doLogout = async () => { stopChatPolling(); stopChatUnreadWatcher(); stopNotifPolling(); await signOut(auth); window.location.href = 'login.html'; };
+
+window.logOutAllDevices = async () => {
+  if (!confirm('Log out from ALL devices? Every browser/app you\'re currently signed into (including this one) will be signed out immediately.')) return;
+  const btn = document.getElementById('logoutAllBtn');
+  btn.disabled = true; const original = btn.innerHTML; btn.innerHTML = 'Logging out everywhere…';
+  try {
+    const revoke = httpsCallable(functions, 'revokeAllSessions');
+    await revoke();
+    stopChatPolling(); stopChatUnreadWatcher(); stopNotifPolling();
+    await signOut(auth);
+    alert('You have been logged out from all devices. Please log in again.');
+    window.location.href = 'login.html';
+  } catch (e) {
+    alert('Could not log out all devices: ' + e.message);
+    btn.disabled = false; btn.innerHTML = original;
+  }
+};
 
 window.toggleSidebar = () => {
   document.getElementById('sidebar').classList.toggle('open');
