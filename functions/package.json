@@ -1,0 +1,21 @@
+{
+  "name": "unscripted-functions",
+  "description": "Cloud Functions for the Unscripted NITT website — session revocation, scheduled event status sweep, nightly Firestore backups, and dual-admin-approved restore / primary-admin actions.",
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "setPrimaryAdmins": "node scripts/setPrimaryAdmins.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.1.0",
+    "firebase-functions": "^5.0.0",
+    "@google-cloud/firestore": "^7.6.0",
+    "@google-cloud/storage": "^7.10.0"
+  },
+  "private": true
+}
