@@ -128,6 +128,7 @@
   <span class="dash-nav-icon"><i class="fa-solid fa-person-walking-arrow-right"></i></span>
   Guest Management
 </a>
+      <a class="dash-nav-item" onclick="showSection('adminsafety')"><span class="dash-nav-icon"><i class="fa-solid fa-shield-halved"></i></span> Admin &amp; Safety</a>
 
       <div class="sidebar-label">Public Site</div>
       <a class="dash-nav-item" onclick="showSection('events')"><span class="dash-nav-icon"><i class="fa-solid fa-bullhorn"></i></span> Event Manager</a>
@@ -844,7 +845,63 @@
     <div id="guestFeedbackList"><p style="color:var(--text-mid);">Loading...</p></div>
   </div>
 </div>
-    
+
+<!-- ═══════════════ ADMIN & SAFETY ═══════════════ -->
+<div class="dash-section" id="section-adminsafety">
+  <h1 class="section-title">Admin &amp; Safety</h1>
+  <p class="section-sub">Every action here that can lose data or change who has power needs a second admin's sign-off.</p>
+
+  <!-- Pending Approvals -->
+  <div class="card" style="margin-bottom:2rem;">
+    <h3 style="margin-top:0;"><i class="fa-solid fa-list-check"></i> Pending Approvals</h3>
+    <p style="font-size:0.82rem;color:var(--text-light);">
+      <i class="fa-solid fa-circle-info"></i>
+      Delete buttons, the leaderboard reset, restores, and primary-admin changes all land here until a
+      <strong>second, different admin</strong> approves them. You cannot approve your own request.
+    </p>
+    <div id="pendingApprovalsList"><p style="color:var(--text-light);font-size:0.88rem;">Loading…</p></div>
+  </div>
+
+  <!-- Primary Admin Management (visible to everyone, actionable only by primary admins) -->
+  <div class="card" style="margin-bottom:2rem;">
+    <h3 style="margin-top:0;"><i class="fa-solid fa-crown"></i> Primary Admins</h3>
+    <p style="font-size:0.82rem;color:var(--text-light);">
+      <i class="fa-solid fa-circle-info"></i>
+      <strong>Only a primary admin can grant or remove primary-admin status</strong>, and doing so needs
+      <strong>2 different primary admins</strong> to approve. Making or removing a regular admin (in Member
+      Control) needs no extra approval — only promoting/demoting to <em>primary</em> admin does.
+    </p>
+    <div id="primaryAdminList" class="primary-admin-only" style="display:none;"></div>
+    <div id="primaryAdminReadOnlyNote" style="font-size:0.82rem;color:var(--text-light);"></div>
+    <div class="primary-admin-only" style="display:none;margin-top:1rem;">
+      <label class="form-label">Grant primary admin to a member (by exact name)</label>
+      <div style="display:flex;gap:0.6rem;">
+        <input type="text" id="newPrimaryAdminName" placeholder="Exact name as on their profile" style="flex:1;" />
+        <button class="btn-primary" onclick="requestPrimaryAdminGrant()">Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="card" style="border:2px solid #f44336;">
+    <h3 style="margin-top:0;color:#c62828;"><i class="fa-solid fa-triangle-exclamation"></i> DANGER ZONE</h3>
+    <p style="font-size:0.85rem;color:#c62828;font-weight:600;">
+      Only press these if you are certain some data was lost or corrupted and needs to be rolled back.
+      Restoring replaces events, gallery, videos, feedback, votes, guest tokens/feedback, and notifications
+      with a saved copy from that date — anything created or changed after that point in those areas is lost.
+      Member accounts, roles, and pathway content are never touched by a restore.
+    </p>
+    <p style="font-size:0.8rem;color:var(--text-light);">
+      <i class="fa-solid fa-circle-info"></i> Requires 3 confirmations + approval from a second admin, same as every button below.
+      A nightly backup runs automatically at 2:00 AM IST, so "Yesterday" and "Last Week" are always the two available restore points.
+    </p>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;">
+      <button class="btn-primary" style="background:#f44336;" onclick="requestRestore('yesterday')">Restore to Yesterday</button>
+      <button class="btn-primary" style="background:#b71c1c;" onclick="requestRestore('lastweek')">Restore to Last Week</button>
+    </div>
+  </div>
+</div>
+
   </main>
 </div>
 
@@ -1159,8 +1216,13 @@ import {
   setDoc, updateDoc, addDoc, deleteDoc, arrayUnion, serverTimestamp, writeBatch, deleteField
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import {
+  runDualApprovalAction, requestOrApproveServerAction, watchPendingActions, tripleConfirm
+} from '../js/danger-actions.js';
 
 let allUsers = [];
+let me = null;          // { uid, name }
+let isPrimaryAdmin = false;
 let allEventsCache = [];
 let currentPathwayKey = 'L1';
 let rolesDataList = [];
@@ -1173,6 +1235,12 @@ onAuthStateChanged(auth, async user => {
     await signOut(auth); window.location.href = 'login.html'; return;
   }
   const adminData = snap.data();
+  me = { uid: user.uid, name: adminData.name || '' };
+  isPrimaryAdmin = adminData.isPrimaryAdmin === true;
+  window.__dangerActionsMe = me;
+  document.querySelectorAll('.primary-admin-only').forEach(el => el.style.display = isPrimaryAdmin ? '' : 'none');
+  watchPendingActions(document.getElementById('pendingApprovalsList'), me, isPrimaryAdmin);
+  if (isPrimaryAdmin) loadPrimaryAdminPanel();
   // Same "Last Login" tracking as the member dashboard — admins/core
   // sometimes never visit dashboard.html, so this needs its own write.
   updateDoc(doc(db, 'users', user.uid), { lastLogin: serverTimestamp() })
@@ -1194,6 +1262,54 @@ onAuthStateChanged(auth, async user => {
 
 window.doLogout = async () => { await signOut(auth); window.location.href = 'login.html'; };
 window.toggleSidebar = () => document.getElementById('sidebar').classList.toggle('open');
+
+// ── DANGER ZONE: restore from backup ─────────────────────
+window.requestRestore = async (when) => {
+  const label = when === 'yesterday'
+    ? 'RESTORE the entire site to YESTERDAY\'s backup? Everything changed today in events, gallery, videos, feedback, voting, guest tokens/feedback and notifications will be LOST.'
+    : 'RESTORE the entire site to LAST WEEK\'s backup? Everything changed since then in events, gallery, videos, feedback, voting, guest tokens/feedback and notifications will be LOST.';
+  await requestOrApproveServerAction(`restore_${when}`, 'restore', label, me, { restoreWhen: when });
+};
+
+// ── PRIMARY ADMIN MANAGEMENT ──────────────────────────────
+async function loadPrimaryAdminPanel() {
+  const snap = await getDocs(query(collection(db, 'users'), where('role', 'in', ['admin', 'core'])));
+  const admins = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const list = document.getElementById('primaryAdminList');
+  const readOnly = document.getElementById('primaryAdminReadOnlyNote');
+  const rows = admins.map(a => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.9rem;border:1px solid var(--border);border-radius:8px;margin-bottom:0.5rem;">
+      <div><strong>${a.name || a.id}</strong> ${a.isPrimaryAdmin ? '<span class="badge-admin">Primary Admin</span>' : '<span style="color:var(--text-light);font-size:0.8rem;">Admin</span>'}</div>
+      ${a.id === me.uid ? '<span style="font-size:0.78rem;color:var(--text-light);">(you)</span>' : `
+        <button class="btn-outline btn-sm" onclick="requestPrimaryAdminChange('${a.id}', ${a.isPrimaryAdmin ? 'false' : 'true'})">
+          ${a.isPrimaryAdmin ? 'Remove Primary Admin' : 'Make Primary Admin'}
+        </button>`}
+    </div>`).join('');
+  if (list) list.innerHTML = rows || '<p style="color:var(--text-light);">No admins found.</p>';
+  if (readOnly) {
+    const names = admins.filter(a => a.isPrimaryAdmin).map(a => a.name).join(', ') || 'none yet';
+    readOnly.textContent = isPrimaryAdmin ? '' : `Current primary admins: ${names}. Only primary admins can change this.`;
+  }
+}
+
+window.requestPrimaryAdminChange = async (targetUid, newValue) => {
+  if (!isPrimaryAdmin) { alert('Only a primary admin can request this.'); return; }
+  const label = newValue
+    ? 'Grant PRIMARY ADMIN status to this member? They will be able to approve/deny future primary-admin changes.'
+    : 'REMOVE primary admin status from this member?';
+  await requestOrApproveServerAction(`pa_${targetUid}`, 'primaryAdminChange', label, me, { targetUid, newValue });
+};
+
+window.requestPrimaryAdminGrant = async () => {
+  if (!isPrimaryAdmin) { alert('Only a primary admin can request this.'); return; }
+  const name = document.getElementById('newPrimaryAdminName').value.trim();
+  if (!name) return alert('Enter the member\'s exact name.');
+  const snap = await getDocs(query(collection(db, 'users'), where('name', '==', name)));
+  if (snap.empty) return alert('No member found with that exact name.');
+  const target = snap.docs[0];
+  await window.requestPrimaryAdminChange(target.id, true);
+  document.getElementById('newPrimaryAdminName').value = '';
+};
 
 // ── SECTION SWITCH ───────────────────────────────────────
 window.showSection = function(id) {
@@ -1549,19 +1665,19 @@ window.filterUsers = () => {
 };
 
 window.deleteUser = async (uid, name) => {
-  if (!confirm(`Delete member "${name}"? This cannot be undone.`)) return;
-  try { await deleteDoc(doc(db,'users',uid)); await loadAllData(); alert('Member deleted.'); }
-  catch(e) { alert('Delete failed: '+e.message); }
+  await runDualApprovalAction(`del_users_${uid}`, `Delete member "${name}"? This cannot be undone.`, me,
+    { collection: 'users', docId: uid },
+    async () => { await deleteDoc(doc(db,'users',uid)); await loadAllData(); });
 };
 
 window.clearLeaderboard = async () => {
-  if (!confirm('Clear the leaderboard? Totals will reset to zero. No data is deleted — only the leaderboard display resets from this point forward.')) return;
-  if (!confirm('Second confirmation: proceed with leaderboard reset?')) return;
-  try {
-    await setDoc(doc(db, 'settings', 'leaderboard'), { resetAt: serverTimestamp() }, { merge: true });
-    alert('Leaderboard cleared! Only events from this point forward will count.');
-    loadMeetRoles();
-  } catch(e) { alert('Failed: ' + e.message); }
+  await runDualApprovalAction('del_settings_leaderboard',
+    'Clear the leaderboard? Totals will reset to zero. No data is deleted — only the leaderboard display resets from this point forward.', me,
+    { collection: 'settings', docId: 'leaderboard' },
+    async () => {
+      await setDoc(doc(db, 'settings', 'leaderboard'), { resetAt: serverTimestamp() }, { merge: true });
+      loadMeetRoles();
+    });
 };
 
 window.toggleInactiveSinceField = function() {
@@ -2162,8 +2278,9 @@ window.cleanOrphanedBadges = async () => {
 };
 
 window.deleteEvent = async (id) => {
-  if (!confirm('Delete this event? This will revert speaker speech progress, remove all guest tokens, erase all feedback and votes linked to this event, and remove any badges members earned because of it.')) return; 
-  try {
+  await runDualApprovalAction(`del_events_${id}`,
+    'Delete this event? This will revert speaker speech progress, remove all guest tokens, erase all feedback and votes linked to this event, and remove any badges members earned because of it.',
+    me, { collection: 'events', docId: id }, async () => {
     // ── Fetch the event to inspect its roles ────────────────────────────────
     const evSnap = await getDoc(doc(db, 'events', id));
     if (!evSnap.exists()) { await deleteDoc(doc(db, 'events', id)); loadEvents(); return; }
@@ -2287,9 +2404,7 @@ window.deleteEvent = async (id) => {
     await deleteDoc(doc(db, 'events', id));
     loadEvents();
     loadAllData();
-  } catch (e) {
-    alert('Delete failed: ' + e.message);
-  }
+  });
 };
  
 
@@ -2613,11 +2728,10 @@ async function loadGallery() {
   } catch(e) { container.innerHTML='<p style="color:red;grid-column:1/-1;text-align:center;padding:2rem;">Error loading gallery.</p>'; }
 }
 window.deletePhoto = async (id,fileName) => {
-  if (!confirm('Delete this photo?')) return;
-  try {
+  await runDualApprovalAction(`del_gallery_${id}`, 'Delete this photo?', me, { collection: 'gallery', docId: id }, async () => {
     if (fileName) { const r=ref(storage,'gallery/'+fileName); await deleteObject(r).catch(()=>{}); }
     await deleteDoc(doc(db,'gallery',id)); loadGallery();
-  } catch(e) { alert('Delete failed: '+e.message); }
+  });
 };
 
 // ── VIDEOS ────────────────────────────────────────────────
@@ -2656,8 +2770,8 @@ async function loadVideos() {
   } catch(e) { list.innerHTML='<p style="color:var(--text-mid);padding:2rem;text-align:center;">Error loading videos.</p>'; }
 }
 window.deleteVideo = async (id) => {
-  if (!confirm('Delete this video?')) return;
-  try { await deleteDoc(doc(db,'videos',id)); loadVideos(); } catch(e) { alert(e.message); }
+  await runDualApprovalAction(`del_videos_${id}`, 'Delete this video?', me, { collection: 'videos', docId: id },
+    async () => { await deleteDoc(doc(db,'videos',id)); loadVideos(); });
 };
 
 // ── NOTIFICATIONS (req 4) ─────────────────────────────────
@@ -2723,7 +2837,8 @@ async function loadSentNotifications() {
   } catch(e) { list.innerHTML='<p style="color:var(--text-mid);">Could not load notifications.</p>'; }
 }
 window.deleteNotif = async (id) => {
-  try { await deleteDoc(doc(db,'notifications',id)); loadSentNotifications(); } catch(e) { alert(e.message); }
+  await runDualApprovalAction(`del_notifications_${id}`, 'Delete this notification?', me, { collection: 'notifications', docId: id },
+    async () => { await deleteDoc(doc(db,'notifications',id)); loadSentNotifications(); });
 };
 
 // ── VOTING MANAGER (req 15) ───────────────────────────────
@@ -2831,14 +2946,14 @@ window.closeVotingSession = async (sid) => {
   catch(e) { alert(e.message); }
 };
 window.deleteVotingSession = async (sid) => {
-  if (!confirm('Delete this voting session and all its votes?')) return;
-  try {
+  await runDualApprovalAction(`del_votingSessions_${sid}`, 'Delete this voting session and all its votes?', me,
+    { collection: 'votingSessions', docId: sid }, async () => {
     const vSnap=await getDocs(query(collection(db,'votes'),where('sessionId','==',sid)));
     const batch=writeBatch(db);
     vSnap.docs.forEach(d=>batch.delete(doc(db,'votes',d.id)));
     batch.delete(doc(db,'votingSessions',sid));
     await batch.commit(); loadVotingSessions();
-  } catch(e) { alert(e.message); }
+  });
 };
 
 let _currentVoteSession=null;
