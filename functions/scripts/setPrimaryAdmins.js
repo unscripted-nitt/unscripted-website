@@ -12,12 +12,21 @@
  * once, then all future primary-admin changes go through the normal
  * 2-primary-admin-approval flow in the admin dashboard.
  *
- * SETUP:
- *   1. Firebase Console → Project Settings → Service Accounts →
- *      "Generate new private key". Save the JSON file as
- *      functions/scripts/serviceAccountKey.json (already gitignored).
- *   2. cd functions && npm install
- *   3. node scripts/setPrimaryAdmins.js
+ * SETUP (Application Default Credentials — no downloadable key needed;
+ * use this if your org blocks service account key creation):
+ *   1. Install the gcloud CLI, then run:
+ *        gcloud auth application-default login
+ *      Sign in with a Google account that has Owner/Editor access on
+ *      the Firebase project. This stores credentials locally on your
+ *      machine only — nothing to keep track of or gitignore.
+ *   2. gcloud config set project unscripted-website
+ *   3. cd functions && npm install
+ *   4. node scripts/setPrimaryAdmins.js
+ *
+ * ALTERNATE SETUP (if your org allows key creation): drop a
+ * downloaded service account JSON at
+ * functions/scripts/serviceAccountKey.json and this script will use
+ * it automatically instead.
  *
  * Matches users by the exact `name` field already stored on their
  * `users/{uid}` document (the same field shown on the Members page).
@@ -28,11 +37,22 @@
 
 const admin = require("firebase-admin");
 const path = require("path");
+const fs = require("fs");
 
 const NAMES_TO_PROMOTE = ["Advait Pardhy", "Samyuktha Sree T"];
+const PROJECT_ID = "unscripted-website";
+const keyPath = path.join(__dirname, "serviceAccountKey.json");
 
-const serviceAccount = require(path.join(__dirname, "serviceAccountKey.json"));
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+if (fs.existsSync(keyPath)) {
+  admin.initializeApp({ credential: admin.credential.cert(require(keyPath)) });
+  console.log("Using service account key file.");
+} else {
+  // Falls back to your own `gcloud auth application-default login`
+  // session — no key file required.
+  admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId: PROJECT_ID });
+  console.log("No serviceAccountKey.json found — using Application Default Credentials.");
+}
+
 const db = admin.firestore();
 
 async function run() {
